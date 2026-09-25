@@ -1,0 +1,53 @@
+{
+  "research_tests": {
+    "passed": 50
+  },
+  "foundation_tests": {
+    "passed": 175,
+    "notes": "Test fixtures emit sqlite ResourceWarnings; runtime connections use explicit close paths."
+  },
+  "exact_package_installation": {
+    "status": "passed",
+    "plugins": [
+      {
+        "plugin": "ultra-deep-research",
+        "archive_sha256": "c5b416f76957aeee3a5797cb2f5d0e95105135fa55d5691f0192b1c0552db338",
+        "files_verified": 244,
+        "tools": 9,
+        "hooks": 1
+      },
+      {
+        "plugin": "hermes-foundation-bridge",
+        "archive_sha256": "a6eb8ce245cfcf0e96ffb95ee6090f288267ca27194b745ec3340574ae5b722e",
+        "files_verified": 56,
+        "tools": 64,
+        "hooks": 5
+      }
+    ],
+    "native_signature_verified": true,
+    "version": "0.13.0b1",
+    "cold_plugin_restore_verified": true,
+    "external_services_restore_claimed": false,
+    "active_instance_modified": false
+  },
+  "live_lifecycle_basis": {
+    "hermes_commit": "2034126e0d1f397b4612782156097243dbbdc819",
+    "controller_platforms": [
+      "macOS",
+      "Linux arm64"
+    ],
+    "services": [
+      "Beads 1.1.0",
+      "Dolt CLI 2.2.1",
+      "AgentMemory 0.9.29",
+      "Graphiti 0.30.2",
+      "FalkorDB 4.20.4"
+    ],
+    "actual_model_provider": "Hermes Codex OAuth",
+    "data": "synthetic",
+    "draft_visible_in_next_memory_and_graph_context": true,
+    "restart_finalization_without_model_repeat": true,
+    "scientific_completeness_claimed": false
+  },
+  "beta_change_boundary": "Research runtime is unchanged apart from version metadata. Foundation additionally binds signed-release verification to its current package version; exact signed archive verification passed."
+}

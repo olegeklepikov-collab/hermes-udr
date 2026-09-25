@@ -40,7 +40,7 @@ for folder in ("research-source", "foundation-source"):
 PYCODE
 UDR_REF="$(git -C research-source rev-parse HEAD)"
 FOUNDATION_REF="$(git -C foundation-source rev-parse HEAD)"
-hermes plugins install "file://$PWD/research-source" --ref "$UDR_REF" --no-enable
+hermes plugins install "file://$PWD/research-source" --ref "$UDR_REF" --no-enable --force
 hermes plugins install "file://$PWD/foundation-source" --ref "$FOUNDATION_REF" --no-enable
 hermes plugins doctor ultra-deep-research --ci
 hermes plugins doctor hermes-foundation-bridge --ci
@@ -48,6 +48,9 @@ hermes plugins enable ultra-deep-research --no-allow-tool-override
 ```
 
 Standalone Research only needs the first plugin: configure a model class and run `python "$HERMES_HOME/plugins/ultra-deep-research/skills/research/scripts/run_research.py" --question "Your question" --mode research`. Foundation is optional for that route.
+
+
+The signed Research archive triggers Hermes community-source heuristics for a forbidden-file list, environment-reference parsing, subprocess use and binary file signatures. Review these findings before accepting the exact verified archive with `--force`; scanning and the catalog kill list remain enabled. This is not advice to force-install arbitrary plugins.
 
 ## Managed operation
 

@@ -40,7 +40,7 @@ for folder in ("research-source", "foundation-source"):
 PYCODE
 UDR_REF="$(git -C research-source rev-parse HEAD)"
 FOUNDATION_REF="$(git -C foundation-source rev-parse HEAD)"
-hermes plugins install "file://$PWD/research-source" --ref "$UDR_REF" --no-enable
+hermes plugins install "file://$PWD/research-source" --ref "$UDR_REF" --no-enable --force
 hermes plugins install "file://$PWD/foundation-source" --ref "$FOUNDATION_REF" --no-enable
 hermes plugins doctor ultra-deep-research --ci
 hermes plugins doctor hermes-foundation-bridge --ci
@@ -48,6 +48,9 @@ hermes plugins enable ultra-deep-research --no-allow-tool-override
 ```
 
 Для автономного Research достаточно первого плагина: задайте класс модели и запустите `python "$HERMES_HOME/plugins/ultra-deep-research/skills/research/scripts/run_research.py" --question "Ваш вопрос" --mode research`. Foundation необязателен для этого пути.
+
+
+Подписанный архив Research вызывает эвристические предупреждения Hermes из-за списка запрещённых файлов, распознавания ссылок на переменные окружения, запуска служебных процессов и сигнатур форматов. Просмотрите их перед подтверждением точного проверенного архива через `--force`; сканирование и проверка отозванных плагинов остаются включёнными. Это не инструкция принудительно устанавливать произвольные плагины.
 
 ## Управляемый запуск
 

@@ -1,20 +1,24 @@
 {
-  "contract": "SoftwareReleaseComponents",
+  "contract": "HermesUDRRelease",
+  "system_name": "Hermes UDR",
   "release_tag": "v0.44.0-beta.1",
   "research_version": "0.44.0b1",
   "foundation_version": "0.13.0b1",
-  "foundation_source_commit": null,
+  "foundation_source_commit": "0c88b65ff2d028d47d85eac7c40f59b1795bfc62",
   "foundation_source_tree_clean": true,
   "files": {
-    "hermes-research-report-0.44.0b1.zip": "c5b416f76957aeee3a5797cb2f5d0e95105135fa55d5691f0192b1c0552db338"
+    "hermes-research-report-0.44.0b1.zip": "c5b416f76957aeee3a5797cb2f5d0e95105135fa55d5691f0192b1c0552db338",
+    "hermes-research-report-0.44.0b1.zip.minisig": "b5c7ffd64fa83ab38a9a5afc5cf536adc0eed03caf990c9c729096dae41ad086",
+    "hermes-foundation-bridge-0.13.0b1.zip": "a6eb8ce245cfcf0e96ffb95ee6090f288267ca27194b745ec3340574ae5b722e",
+    "hermes-foundation-bridge-0.13.0b1.zip.minisig": "1daf4e58f4c2c7c5f9806e1e82f622e0d46082a92f8c52fafae614056ab99c66",
+    "release-signing.pub": "2295aaab3cb418c4f81a867a701a8187e8cdd0f73105a1f318c1faf981dfdb1a"
   },
-  "compatibility_pin_verified": true,
-  "signature_status": "pending",
-  "software_release_status": "beta_preparation",
+  "signature_status": "verified_minisign",
+  "public_key_sha256": "2295aaab3cb418c4f81a867a701a8187e8cdd0f73105a1f318c1faf981dfdb1a",
+  "software_release_status": "signed_operational_beta",
   "production_activation_allowed": false,
-  "research_profile_qualification_inherited": false,
   "qualified_research_profiles": [],
-  "tested_scope": "Synthetic host lifecycle: actual Hermes/Codex OAuth, Beads, Dolt CLI, AgentMemory, Graphiti; macOS and Linux arm64; draft intake and restart-safe finalization. Not scientific quality qualification.",
-  "supersedes": "v0.41.0a1-r153-v22",
-  "system_name": "Hermes UDR"
+  "compatibility_pin_verified": true,
+  "predecessor_repository": "https://github.com/olegeklepikov-collab/ultra-deep-research",
+  "scope": "Operational beta: installation, native tools, host lifecycle, draft intake and resumable finalization. Not general scientific qualification or automatic production activation."
 }
