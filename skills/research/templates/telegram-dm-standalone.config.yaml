@@ -1,0 +1,12 @@
+# Render with render_dm_config() in skills/research/scripts/render_telegram_dm_baseline.py.
+# The token is supplied through TELEGRAM_BOT_TOKEN in the process environment.
+# No token value is stored in YAML. Replace both identity placeholders at render time.
+telegram:
+  enabled: true
+  allow_from: ["__PERMITTED_DM_USER_ID__"]
+  allowed_chats: ["__PERMITTED_DM_CHAT_ID__"]
+  group_allow_from: []
+  group_allowed_chats: []
+  guest_mode: false
+  unauthorized_dm_behavior: ignore
+  observe_unmentioned_group_messages: false

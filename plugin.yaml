@@ -1,0 +1,20 @@
+name: ultra-deep-research
+version: 0.44.0b1
+description: "Wide and deep research through native Hermes agents, a shared corpus and cited analysis."
+kind: standalone
+entry_point: plugin.py
+pip_dependencies:
+  - pdfplumber==0.11.9
+requires_env: []
+provides_tools:
+  - research_web_provider
+  - research_workspace
+  - research_method
+  - research_fetch
+  - research_source
+  - research_note
+  - research_finish
+  - research_compare_periods
+  - research_build_report
+provides_hooks:
+  - post_tool_call

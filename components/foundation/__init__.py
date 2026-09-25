@@ -1,0 +1,5 @@
+"""Native Hermes plugin entry point."""
+
+from .plugin import register
+
+__all__ = ["register"]

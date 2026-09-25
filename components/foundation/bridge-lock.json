@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "bridge": {
+    "name": "hermes-foundation-bridge",
+    "version": "0.13.0b1",
+    "source_commit_binding": "bundle-manifest.json#source_commit",
+    "source_tree_binding": "bundle-manifest.json#source_tree_clean",
+    "signature_status": "minisign_external",
+    "trusted_public_key": "release-signing.pub",
+    "license_status": "Apache-2.0",
+    "production_activation_allowed": false
+  },
+  "hermes": {
+    "version": "0.21.3",
+    "commit": "2034126e0d1f397b4612782156097243dbbdc819",
+    "extension_api": "public_plugin_tools_and_hooks",
+    "patches": [
+      {
+        "path": "patches/hermes-0.21.3-telegram-callback-auth.patch",
+        "sha256": "d6104a41d7b46e20a2c09320ef4a1ab7540caaa8e503935239c120a940960a62",
+        "target": "plugins/platforms/telegram/adapter.py",
+        "upstream_file_sha256": "2feb42e682917f05ec85170dd9bca47ca0f1782267ea13c7d61f20f12c81f51b",
+        "patched_file_sha256": "a4a5fa97658dc63cd8f94316c3b0973d759fab4c29bb410cf7e507287e7fc0b7",
+        "purpose": "Authorize all Telegram callbacks before dispatch; user-approved isolated delivery only"
+      }
+    ]
+  },
+  "research_report": {
+    "version": "0.44.0b1",
+    "bundle_sha256": "c5b416f76957aeee3a5797cb2f5d0e95105135fa55d5691f0192b1c0552db338"
+  },
+  "dolt_sql_authority": {
+    "dolt_version": "2.2.1",
+    "driver": "PyMySQL==1.1.2",
+    "mode": "loopback_sql_server",
+    "writer_user": "foundation_writer",
+    "admin_user": "foundation_admin",
+    "privilege_file_ref": "foundation/dolt/.doltcfg/privileges.db",
+    "branch_control_file_ref": "foundation/dolt/.doltcfg/branch_control.db",
+    "server_manifest_ref": "foundation/dolt/sql-authority.json",
+    "root_login_used_by_bridge": false
+  },
+  "zvec": {
+    "version": "0.7.0",
+    "index_manifest": "retrieval-fragments-v2",
+    "source_ledger": "retrieval-source-ledger-v2",
+    "embedding_model": "none",
+    "dimension": 0,
+    "retrieval": "fts_bm25"
+  },
+  "graphiti": {
+    "version": "0.30.2",
+    "base_image_digest": "sha256:21818c8a8e3b0513fe167370527fec32ed117e98bcc3423f9eb3bc6c73af7d43",
+    "runtime_image": "hermes-foundation-graphiti:0.30.2-falkor1",
+    "runtime_image_id": "sha256:c345d72434f5962e0336d3bdeb5c347b0ef180541994a38ec46a09bc3f1727fa",
+    "falkordb_client_version": "1.7.1",
+    "httpx_compatibility_version": "0.28.1",
+    "database": "hermes_foundation",
+    "write_authority": "hermes-foundation-bridge"
+  },
+  "falkordb": {
+    "version": "4.20.4",
+    "image_digest": "sha256:adbddd418916c25618564ff8597a919b08bc76452ebeb74eb985c38d7281df62",
+    "network": "hermes-foundation-net",
+    "container": "hermes-foundation-falkordb",
+    "published_endpoints": []
+  },
+  "agentmemory": {
+    "version": "0.9.29",
+    "npm_shasum": "800309cb9e83ee5efc10739f8b481d79fa5544df",
+    "iii_engine_version": "0.11.2",
+    "node_base_digest": "sha256:5711a0d445a1af54af9589066c646df387d1831a608226f4cd694fc59e745059",
+    "runtime_image": "hermes-foundation-agentmemory:0.9.29-bridge2",
+    "runtime_image_id": "sha256:9a780b4f76d3d7ea507ff3581b9a8a08885e2d9037aec52e58daa5479043079e",
+    "scope_mode": "isolated",
+    "published_endpoints": []
+  },
+  "beads": {
+    "version": "1.1.0",
+    "workspace_ref": "foundation/beads-workspace",
+    "issue_prefix": "KWF",
+    "backend": "embedded_dolt",
+    "access": "public_cli_only"
+  },
+  "migrations": [
+    "001_runtime",
+    "002_dolt",
+    "dolt-sql-authority-v1",
+    "003_profile_transport",
+    "004_observability",
+    "zvec-retrieval-fragments-v2",
+    "graphiti-hermes-foundation"
+  ],
+  "rollback_ref": "ROLLBACK.md"
+}

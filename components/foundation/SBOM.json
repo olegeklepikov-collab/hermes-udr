@@ -1,0 +1,108 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:31f3f1fe-92f0-4c8c-8a22-c55bfc0d6d1b",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "application",
+      "name": "hermes-foundation-bridge",
+      "version": "0.13.0b1",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "type": "application",
+      "name": "Hermes Agent",
+      "version": "0.21.3",
+      "purl": "pkg:github/NousResearch/hermes-agent@2034126e0d1f397b4612782156097243dbbdc819"
+    },
+    {
+      "type": "library",
+      "name": "hermes-research-report",
+      "version": "0.44.0b1",
+      "purl": "pkg:pypi/hermes-research-report@0.44.0b1"
+    },
+    {
+      "type": "application",
+      "name": "Dolt",
+      "version": "2.2.1",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "PyMySQL",
+      "version": "1.1.2",
+      "purl": "pkg:pypi/pymysql@1.1.2",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "zvec",
+      "version": "0.7.0",
+      "purl": "pkg:pypi/zvec@0.7.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "graphiti-core",
+      "version": "0.30.2",
+      "purl": "pkg:pypi/graphiti-core@0.30.2",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "falkordb",
+      "version": "1.7.1",
+      "purl": "pkg:pypi/falkordb@1.7.1",
+      "scope": "required"
+    },
+    {
+      "type": "container",
+      "name": "falkordb/falkordb",
+      "version": "4.20.4",
+      "bom-ref": "pkg:docker/falkordb/falkordb@sha256%3Aadbddd418916c25618564ff8597a919b08bc76452ebeb74eb985c38d7281df62",
+      "scope": "required"
+    },
+    {
+      "type": "container",
+      "name": "zepai/graphiti",
+      "version": "0.30.2",
+      "bom-ref": "pkg:docker/zepai/graphiti@sha256%3A21818c8a8e3b0513fe167370527fec32ed117e98bcc3423f9eb3bc6c73af7d43",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "@agentmemory/agentmemory",
+      "version": "0.9.29",
+      "purl": "pkg:npm/%40agentmemory/agentmemory@0.9.29",
+      "scope": "required"
+    },
+    {
+      "type": "application",
+      "name": "iii-engine",
+      "version": "0.11.2",
+      "scope": "required"
+    },
+    {
+      "type": "container",
+      "name": "node",
+      "version": "24.18.0-bookworm",
+      "bom-ref": "pkg:docker/node@sha256%3A5711a0d445a1af54af9589066c646df387d1831a608226f4cd694fc59e745059",
+      "scope": "required"
+    },
+    {
+      "type": "application",
+      "name": "bd",
+      "version": "1.1.0",
+      "scope": "required"
+    }
+  ]
+}

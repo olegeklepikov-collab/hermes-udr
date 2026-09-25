@@ -1,0 +1,20 @@
+{
+  "contract": "SoftwareReleaseComponents",
+  "release_tag": "v0.44.0-beta.1",
+  "research_version": "0.44.0b1",
+  "foundation_version": "0.13.0b1",
+  "foundation_source_commit": null,
+  "foundation_source_tree_clean": true,
+  "files": {
+    "hermes-research-report-0.44.0b1.zip": "c5b416f76957aeee3a5797cb2f5d0e95105135fa55d5691f0192b1c0552db338"
+  },
+  "compatibility_pin_verified": true,
+  "signature_status": "pending",
+  "software_release_status": "beta_preparation",
+  "production_activation_allowed": false,
+  "research_profile_qualification_inherited": false,
+  "qualified_research_profiles": [],
+  "tested_scope": "Synthetic host lifecycle: actual Hermes/Codex OAuth, Beads, Dolt CLI, AgentMemory, Graphiti; macOS and Linux arm64; draft intake and restart-safe finalization. Not scientific quality qualification.",
+  "supersedes": "v0.41.0a1-r153-v22",
+  "system_name": "Hermes UDR"
+}
