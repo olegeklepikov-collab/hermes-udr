@@ -35,7 +35,7 @@ async function main() {
   const payload = request.payload ?? {};
   if (operation === "version") {
     const result = await call(base, "/agentmemory/health");
-    return { status: "available", version: result?.version, engine_version: "0.11.2" };
+    return { status: "available", version: result?.version, required_engine_version: "0.11.2", engine_version_verified: false };
   }
   if (operation === "health") {
     const result = await call(base, "/agentmemory/health");

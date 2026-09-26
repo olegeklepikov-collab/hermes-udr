@@ -27,7 +27,7 @@
   },
   "research_report": {
     "version": "0.44.0b2",
-    "bundle_sha256": "c5b416f76957aeee3a5797cb2f5d0e95105135fa55d5691f0192b1c0552db338"
+    "bundle_sha256": "61e15b459878d5f6ffe77849c5fe98d233aeb2fb91655be161c2cbaf2fa5fefa"
   },
   "dolt_sql_authority": {
     "dolt_version": "2.2.1",

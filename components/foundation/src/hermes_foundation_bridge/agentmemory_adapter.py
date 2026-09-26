@@ -98,10 +98,7 @@ class AgentMemoryAdapter:
             )
         apply = boolean(data["apply"], "request.apply")
         version = self._invoke("version")
-        if (
-            version.get("version") != "0.9.29"
-            or version.get("engine_version") != "0.11.2"
-        ):
+        if version.get("version") != "0.9.29":
             fail(
                 "agentmemory_version_mismatch",
                 "runtime.agentmemory",
@@ -162,8 +159,9 @@ class AgentMemoryAdapter:
                 "contract": "AgentMemoryHealthReceipt",
                 "status": result["status"],
                 "manifest_hash": sha256_json(self.expected_manifest),
-                "version": "0.9.29",
-                "engine_version": "0.11.2",
+                "version": result.get("result", {}).get("version", "unknown"),
+                "required_engine_version": "0.11.2",
+                "engine_version_verified": False,
                 "scope_mode": "isolated",
                 "published_ports": 0,
             }
