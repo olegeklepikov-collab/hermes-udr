@@ -2,7 +2,7 @@
 
 [Home](../../README.md) · [Русский](../ru/architecture.md) · [Workflows](workflows.md)
 
-Hermes UDR 0.44 and Foundation 0.13a3 form the current paired candidate. This working copy precedes release signing; the [release manifest](../reference/release-manifest.json) determines the published signature and component identity. Code and host integration have been tested within a defined local scope. Industrial beta does not certify corporate or academic research quality or automatically activate production.
+Research 0.44.0b2 and Foundation 0.14.0b1 form the signed native beta. The [release manifest](../reference/release-manifest.json) identifies the exact components; [validation](../reference/validation.json) defines the tested scope. Software verification does not certify research conclusions or activate a production instance.
 
 ## One controller, two components
 
@@ -29,4 +29,4 @@ Collection records source identity, search and access outcomes, original bytes w
 
 Research's `handoff` action snapshots registered source, note, plan, journal, step and report files. Foundation `complete` stages that package, verifies paths, bytes, hashes, run binding and active admission, then imports it as `ResearchImportedDraftV1`. It subsequently synchronizes a draft reference to AgentMemory and Graphiti. `ResearchSession.restore` allows finalization from a saved canonical admission without repeating the model call. Retried completion reuses the first package and checks canonical state. Neither `research_finish` nor `complete` approves claims, authorizes delivery or certifies the research.
 
-In Foundation mode, `research_fetch` saves the public original as `original.bin` and marks it `raw_acquired_requires_host_intake`; it does not parse untrusted content locally. An authorized host intake and parser profile must produce text and provenance references before `research_source` can register it. Docker terminal settings alone do not isolate Python plugin code. Configured tool access and native provider availability likewise do not grant Graphiti writes or outbound delivery; host policy remains decisive.
+In Foundation mode, `research_fetch` saves the public original as `original.bin` and marks it `raw_acquired_requires_host_intake`; it does not parse untrusted content locally. An authorized host intake and parser profile must produce text and provenance references before `research_source` can register it. Python plugin code runs in the Hermes process. Configured tool access and native provider availability likewise do not grant Graphiti writes or outbound delivery; host policy remains decisive.

@@ -1,53 +1,87 @@
 {
-  "research_tests": {
-    "passed": 50
-  },
-  "foundation_tests": {
-    "passed": 175,
-    "notes": "Test fixtures emit sqlite ResourceWarnings; runtime connections use explicit close paths."
+  "release": "v0.44.0-beta.2",
+  "date": "2026-09-26",
+  "native_ci": {
+    "url": "https://github.com/olegeklepikov-collab/hermes-udr/actions/runs/36263307205",
+    "source_commit": "a0374557b54efdefd57da7faa1da0c0e30132b92",
+    "status": "success",
+    "platforms": {
+      "ubuntu-24.04": {
+        "research_run": 33,
+        "research_passed": 33,
+        "foundation_run": 188,
+        "foundation_passed": 185,
+        "foundation_skipped": 3,
+        "mirage_mcp_read_and_denied_write": "passed"
+      },
+      "macos-14": {
+        "research_run": 33,
+        "research_passed": 33,
+        "foundation_run": 188,
+        "foundation_passed": 185,
+        "foundation_skipped": 3,
+        "mirage_mcp_read_and_denied_write": "passed"
+      },
+      "windows-2025": {
+        "research_run": 33,
+        "research_passed": 33,
+        "foundation_run": 188,
+        "foundation_passed": 186,
+        "foundation_skipped": 2,
+        "mirage_mcp_read_and_denied_write": "passed"
+      }
+    }
   },
   "exact_package_installation": {
     "status": "passed",
     "plugins": [
       {
         "plugin": "ultra-deep-research",
-        "archive_sha256": "c5b416f76957aeee3a5797cb2f5d0e95105135fa55d5691f0192b1c0552db338",
+        "archive_sha256": "61e15b459878d5f6ffe77849c5fe98d233aeb2fb91655be161c2cbaf2fa5fefa",
         "files_verified": 244,
         "tools": 9,
         "hooks": 1
       },
       {
         "plugin": "hermes-foundation-bridge",
-        "archive_sha256": "a6eb8ce245cfcf0e96ffb95ee6090f288267ca27194b745ec3340574ae5b722e",
-        "files_verified": 56,
+        "archive_sha256": "f847454509d608e4f5ff2013e66da1469b804f9bef6053fbb18785ea1f402337",
+        "files_verified": 57,
         "tools": 64,
         "hooks": 5
       }
     ],
     "native_signature_verified": true,
-    "version": "0.13.0b1",
+    "version": "0.14.0b1",
     "cold_plugin_restore_verified": true,
     "external_services_restore_claimed": false,
     "active_instance_modified": false
   },
-  "live_lifecycle_basis": {
-    "hermes_commit": "2034126e0d1f397b4612782156097243dbbdc819",
-    "controller_platforms": [
-      "macOS",
-      "Linux arm64"
-    ],
-    "services": [
-      "Beads 1.1.0",
-      "Dolt CLI 2.2.1",
-      "AgentMemory 0.9.29",
-      "Graphiti 0.30.2",
-      "FalkorDB 4.20.4"
-    ],
-    "actual_model_provider": "Hermes Codex OAuth",
-    "data": "synthetic",
-    "draft_visible_in_next_memory_and_graph_context": true,
-    "restart_finalization_without_model_repeat": true,
-    "scientific_completeness_claimed": false
+  "native_lifecycle": {
+    "status": "passed",
+    "dolt_work_readback": true,
+    "memory_seed_readback": true,
+    "completion_status": "completed_draft",
+    "repeat_same_draft": true,
+    "canonical_draft_status": "imported_draft",
+    "claims_accepted": false,
+    "delivery_authorized": false,
+    "memory_result_count": 1,
+    "graph_result_count": 1,
+    "source_count": 1,
+    "note_count": 2,
+    "report_present": true,
+    "model": "deterministic fixture",
+    "services": "real local Beads, Dolt, AgentMemory/iii, Graphiti/Neo4j",
+    "platform": "macOS ARM64"
   },
-  "beta_change_boundary": "Research runtime is unchanged apart from version metadata. Foundation additionally binds signed-release verification to its current package version; exact signed archive verification passed."
+  "native_service_restart": {
+    "status": "passed",
+    "native_services_restart": true,
+    "signed_foundation_version": "0.14.0b1",
+    "memory_records_after_restart": 1,
+    "graph_records_after_restart": 1,
+    "data_recreated": false
+  },
+  "qualified_research_profiles": [],
+  "scope": "Native core execution, storage, process boundaries, actual MCP Mirage, exact signed package installation and cold plugin restore. Provider-specific credentials, full platform service deployment on Windows/Linux, scientific synthesis quality and production cutover require instance-level acceptance."
 }

@@ -6,7 +6,7 @@ Native installation for macOS, Linux and Windows (without Docker): [complete set
 
 Use a new profile. The package does not replace a running Hermes or configure your credentials. The tested Hermes base is 0.21.3 at commit `2034126e0d1f397b4612782156097243dbbdc819`. Foundation includes a separate Telegram callback-authorization patch; compatibility must be checked before applying it to another revision. Internal plugin IDs remain `ultra-deep-research` and `hermes-foundation-bridge`.
 
-Python ≥3.11 is required; Python 3.13, macOS and Linux arm64 were tested. PDF extraction needs Poppler or `pdfplumber==0.11.9`. Hermes does not automatically install plugin dependencies. Configure service connections, API/OAuth and model selection in your profile. Foundation additionally needs Beads 1.1.0, Dolt 2.2.1, its declared dependencies and the services pinned in bridge-lock.json.
+Python ≥3.11 is required. The native core is tested with Python 3.13 on macOS ARM64, Linux x64 and Windows x64; Mirage uses a separate Python 3.12 environment. PDF extraction needs Poppler or `pdfplumber==0.11.9`. Hermes does not automatically install plugin dependencies. Configure service connections, API/OAuth and model selection in your profile. Foundation additionally needs Beads 1.1.0, Dolt 2.2.1, its declared dependencies and the services pinned in bridge-lock.json.
 
 ## Verify the distribution
 

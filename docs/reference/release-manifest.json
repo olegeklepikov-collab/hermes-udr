@@ -1,16 +1,16 @@
 {
   "contract": "HermesUDRRelease",
   "system_name": "Hermes UDR",
-  "release_tag": "v0.44.0-beta.1",
-  "research_version": "0.44.0b1",
-  "foundation_version": "0.13.0b1",
-  "foundation_source_commit": "0c88b65ff2d028d47d85eac7c40f59b1795bfc62",
+  "release_tag": "v0.44.0-beta.2",
+  "research_version": "0.44.0b2",
+  "foundation_version": "0.14.0b1",
+  "foundation_source_commit": "f18ec10ed6dd94db6af227664da4d917ccc8ba73",
   "foundation_source_tree_clean": true,
   "files": {
-    "hermes-research-report-0.44.0b1.zip": "c5b416f76957aeee3a5797cb2f5d0e95105135fa55d5691f0192b1c0552db338",
-    "hermes-research-report-0.44.0b1.zip.minisig": "b5c7ffd64fa83ab38a9a5afc5cf536adc0eed03caf990c9c729096dae41ad086",
-    "hermes-foundation-bridge-0.13.0b1.zip": "a6eb8ce245cfcf0e96ffb95ee6090f288267ca27194b745ec3340574ae5b722e",
-    "hermes-foundation-bridge-0.13.0b1.zip.minisig": "1daf4e58f4c2c7c5f9806e1e82f622e0d46082a92f8c52fafae614056ab99c66",
+    "hermes-foundation-bridge-0.14.0b1.zip": "f847454509d608e4f5ff2013e66da1469b804f9bef6053fbb18785ea1f402337",
+    "hermes-foundation-bridge-0.14.0b1.zip.minisig": "50e5c8589470ca1be9afd8229c178ebde56a0aece2296cc651b433b6af88a753",
+    "hermes-research-report-0.44.0b2.zip": "61e15b459878d5f6ffe77849c5fe98d233aeb2fb91655be161c2cbaf2fa5fefa",
+    "hermes-research-report-0.44.0b2.zip.minisig": "7926499afb4135f8b22783b6fbac0e7f58a15ecaa25d45a81a47e5bde8336e71",
     "release-signing.pub": "2295aaab3cb418c4f81a867a701a8187e8cdd0f73105a1f318c1faf981dfdb1a"
   },
   "signature_status": "verified_minisign",
@@ -20,5 +20,6 @@
   "qualified_research_profiles": [],
   "compatibility_pin_verified": true,
   "predecessor_repository": "https://github.com/olegeklepikov-collab/ultra-deep-research",
-  "scope": "Operational beta: installation, native tools, host lifecycle, draft intake and resumable finalization. Not general scientific qualification or automatic production activation."
+  "scope": "Operational beta: installation, native tools, host lifecycle, draft intake and resumable finalization. Not general scientific qualification or automatic production activation.",
+  "platform": "native"
 }

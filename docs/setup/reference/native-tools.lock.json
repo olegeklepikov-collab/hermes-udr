@@ -141,5 +141,15 @@
     "python": "3.12",
     "mcp": "1.30.0",
     "source_commit": "5678c94557ab4d00f44b1a9b18be562ac1e643c4"
+  },
+  "release_artifacts": {
+    "research": {
+      "name": "hermes-research-report-0.44.0b2.zip",
+      "sha256": "61e15b459878d5f6ffe77849c5fe98d233aeb2fb91655be161c2cbaf2fa5fefa"
+    },
+    "foundation": {
+      "name": "hermes-foundation-bridge-0.14.0b1.zip",
+      "sha256": "f847454509d608e4f5ff2013e66da1469b804f9bef6053fbb18785ea1f402337"
+    }
   }
 }
