@@ -249,6 +249,7 @@ class DoltSQLAdapterTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Права файла SQL-службы"):
             adapter._configuration()
         secure_file(adapter.branch_control_path)
+        secure_file(adapter.privilege_path)
         self.assertEqual(
             adapter.get(
                 {

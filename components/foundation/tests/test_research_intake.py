@@ -1,4 +1,5 @@
 import hashlib
+from contextlib import closing
 import copy
 import json
 from pathlib import Path
@@ -77,7 +78,7 @@ class ResearchIntakeTests(unittest.TestCase):
         report=self.artifacts.quarantine/'packet/report.md';report.chmod(0o600);report.write_text('tampered')
         with self.assertRaises(ValueError):service.ingest('packet',digest)
         self.assertFalse(list(self.artifacts.originals.iterdir()))
-        with self.runtime._connect() as c:c.execute("UPDATE leases SET expires_at='2000-01-01T00:00:00+00:00'")
+        with closing(self.runtime._connect()) as c, c:c.execute("UPDATE leases SET expires_at='2000-01-01T00:00:00+00:00'")
         with self.assertRaises(ValueError):session.check()
         self.assertFalse(any(k[1].startswith('RHI-') for k in self.state.objects))
 
