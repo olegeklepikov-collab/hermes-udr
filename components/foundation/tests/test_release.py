@@ -12,6 +12,7 @@ from unittest.mock import MagicMock, patch
 
 from hermes_foundation_bridge.canonical import canonical_bytes
 from hermes_foundation_bridge.errors import BridgeError
+from hermes_foundation_bridge.native_runtime import assert_private_file
 from hermes_foundation_bridge.release import (
     ARCHIVE_NAME,
     PUBLIC_KEY_NAME,
@@ -47,6 +48,10 @@ def make_release(root: Path) -> Path:
             "bridge-lock.json",
             "plugin.py",
             "plugin.yaml",
+            "scripts/configure_native_runtime.py",
+            "src/hermes_foundation_bridge/native_runtime.py",
+            "src/hermes_foundation_bridge/graphiti_worker.py",
+            "src/hermes_foundation_bridge/agentmemory_worker.mjs",
         )
     }
     files[PUBLIC_KEY_NAME] = public_key
@@ -109,8 +114,7 @@ class ReleaseTests(unittest.TestCase):
         verified, persisted = release_verified(self.root)
         self.assertTrue(verified)
         self.assertEqual(persisted, result)
-        mode = os.stat(self.root / "runtime" / "release-verification.json").st_mode
-        self.assertEqual(mode & 0o777, 0o600)
+        assert_private_file(self.root / "runtime" / "release-verification.json")
 
     def test_invalid_commit_is_rejected_before_signature_check(self) -> None:
         with self.assertRaises(BridgeError) as caught:

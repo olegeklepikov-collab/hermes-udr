@@ -5,6 +5,7 @@ import json
 import os
 import socket
 import sqlite3
+from contextlib import closing
 import subprocess
 import sys
 import threading
@@ -48,7 +49,7 @@ class LocalTransportFaultTests(unittest.TestCase):
                 fixture.setUp()
                 fixture.migrate()
                 provider = Path(fixture.directory.name) / "provider.sqlite3"
-                with sqlite3.connect(provider) as db:
+                with closing(sqlite3.connect(provider)) as db, db:
                     db.execute("CREATE TABLE accepted(artifact_hash TEXT, bytes BLOB)")
 
                 class Transport(BaseHTTPRequestHandler):
@@ -59,7 +60,7 @@ class LocalTransportFaultTests(unittest.TestCase):
                         body = self.rfile.read(int(self.headers["content-length"]))
                         digest = hashlib.sha256(body).hexdigest()
                         assert digest == self.headers["X-Artifact-SHA256"]
-                        with sqlite3.connect(provider) as db:
+                        with closing(sqlite3.connect(provider)) as db, db:
                             db.execute(
                                 "INSERT INTO accepted VALUES(?,?)", (digest, body)
                             )
@@ -73,7 +74,7 @@ class LocalTransportFaultTests(unittest.TestCase):
                         self.wfile.write(b'{"accepted":true}')
 
                     def do_GET(self, provider=provider):
-                        with sqlite3.connect(provider) as db:
+                        with closing(sqlite3.connect(provider)) as db, db:
                             rows = db.execute(
                                 "SELECT artifact_hash, bytes FROM accepted"
                             ).fetchall()
@@ -115,7 +116,7 @@ class LocalTransportFaultTests(unittest.TestCase):
                         timeout=15,
                     )
                     self.assertEqual(failed.returncode, 73, failed.stderr)
-                    with sqlite3.connect(fixture.service.database) as db:
+                    with closing(sqlite3.connect(fixture.service.database)) as db, db:
                         before = db.execute(
                             "SELECT state,artifact_hash FROM deliveries WHERE idempotency_key='CONTROL-TRANSPORT'"
                         ).fetchone()
@@ -130,7 +131,7 @@ class LocalTransportFaultTests(unittest.TestCase):
                     )
                     self.assertEqual(recovered.returncode, 0, recovered.stderr)
                     result = json.loads(recovered.stdout)
-                    with sqlite3.connect(provider) as db:
+                    with closing(sqlite3.connect(provider)) as db, db:
                         rows = db.execute(
                             "SELECT artifact_hash,bytes FROM accepted"
                         ).fetchall()

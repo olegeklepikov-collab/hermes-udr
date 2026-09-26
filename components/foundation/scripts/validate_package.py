@@ -41,11 +41,14 @@ def main() -> int:
         "plugin.py",
         "scripts/provision_dolt_sql.py",
         "scripts/manage_dolt_sql.py",
+        "scripts/configure_native_runtime.py",
+        "src/hermes_foundation_bridge/native_runtime.py",
+        "src/hermes_foundation_bridge/graphiti_worker.py",
+        "src/hermes_foundation_bridge/agentmemory_worker.mjs",
         "migrations/001_runtime.sql",
         "migrations/002_dolt.sql",
         "migrations/003_profile_transport.sql",
         "migrations/004_observability.sql",
-        "docker/Graphiti.Dockerfile",
     ):
         if not (ROOT / relative).is_file():
             errors.append(f"missing: {relative}")

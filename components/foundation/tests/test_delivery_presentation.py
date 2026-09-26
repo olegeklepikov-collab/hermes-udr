@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 import sqlite3
+from contextlib import closing
 import tempfile
 import unittest
 from pathlib import Path
@@ -94,7 +95,7 @@ class DeliveryPresentationTests(unittest.TestCase):
         self.assertIn("отправка и получение этой квитанцией не подтверждены", notice)
         self.assertFalse(first["external_effect_performed"])
         self.assertFalse(first["delivery_observed"])
-        with sqlite3.connect(self.root / "runtime" / "profile-transport.sqlite3") as db:
+        with closing(sqlite3.connect(self.root / "runtime" / "profile-transport.sqlite3")) as db, db:
             state = db.execute(
                 "SELECT state, attempts, artifact_hash FROM deliveries WHERE idempotency_key=?",
                 (self.key,),

@@ -35,12 +35,12 @@ def files() -> list[Path]:
         ROOT / "plugin.yaml",
         ROOT / "scripts" / "provision_dolt_sql.py",
         ROOT / "scripts" / "manage_dolt_sql.py",
+        ROOT / "scripts" / "configure_native_runtime.py",
         ROOT / "src" / "__init__.py",
     ]
     fixed.extend(sorted((ROOT / "src" / "hermes_foundation_bridge").glob("*.py")))
     fixed.extend(sorted((ROOT / "src" / "hermes_foundation_bridge").glob("*.mjs")))
     fixed.extend(sorted((ROOT / "migrations").glob("*.sql")))
-    fixed.extend(sorted((ROOT / "docker").glob("*.Dockerfile")))
     fixed.extend(sorted((ROOT / "patches").glob("*.patch")))
     return fixed
 

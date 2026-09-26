@@ -41,6 +41,10 @@ REQUIRED_MEMBERS = {
     "bridge-lock.json",
     "plugin.py",
     "plugin.yaml",
+    "scripts/configure_native_runtime.py",
+    "src/hermes_foundation_bridge/native_runtime.py",
+    "src/hermes_foundation_bridge/graphiti_worker.py",
+    "src/hermes_foundation_bridge/agentmemory_worker.mjs",
     PUBLIC_KEY_NAME,
 }
 

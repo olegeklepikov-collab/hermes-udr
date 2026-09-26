@@ -2,6 +2,8 @@
 
 [Главная](../../README.ru.md) · [English](../en/installation.md)
 
+Нативная установка на macOS, Linux и Windows без Docker: [полный комплект настройки](../setup/README.md). Включены SQLite, AgentMemory/iii, Neo4j/Graphiti, Zvec, Serena, Mirage и наблюдаемость. Перед включением Foundation выполните настройку его нативных служб.
+
 Используйте новый профиль. Пакет не заменяет работающий Hermes и не настраивает ваши ключи. Требуется совместимый Hermes; проверенная основа — 0.21.3, commit `2034126e0d1f397b4612782156097243dbbdc819`. Исходный выпуск Foundation содержит отдельную поправку проверки Telegram-кнопок; применение к другой редакции требует проверки совместимости. Внутренние ID остаются `ultra-deep-research` и `hermes-foundation-bridge`.
 
 Python ≥3.11; проверены Python 3.13, macOS и Linux arm64. Для PDF требуется Poppler либо `pdfplumber==0.11.9`. Hermes не устанавливает зависимости плагина автоматически. Подключения сервисов, API/OAuth и модель задаются в профиле пользователя. Для Foundation нужны Beads 1.1.0, Dolt 2.2.1 и его дополнительные зависимости, а также службы из закреплённого bridge-lock.json.
@@ -14,13 +16,13 @@ export HERMES_HOME="$HOME/.hermes-udr-beta"
 export HERMES_FOUNDATION_ROOT="$HERMES_HOME/foundation"
 mkdir hermes-udr-download
 cd hermes-udr-download
-gh release download v0.44.0-beta.1 --repo olegeklepikov-collab/hermes-udr
+gh release download v0.44.0-beta.2 --repo olegeklepikov-collab/hermes-udr
 minisign -Vm SHA256SUMS -p release-signing.pub
 shasum -a 256 -c SHA256SUMS
-minisign -Vm hermes-research-report-0.44.0b1.zip -p release-signing.pub
-minisign -Vm hermes-foundation-bridge-0.13.0b1.zip -p release-signing.pub
-unzip -n hermes-research-report-0.44.0b1.zip -d research-source
-unzip -n hermes-foundation-bridge-0.13.0b1.zip -d foundation-source
+minisign -Vm hermes-research-report-0.44.0b2.zip -p release-signing.pub
+minisign -Vm hermes-foundation-bridge-0.14.0b1.zip -p release-signing.pub
+unzip -n hermes-research-report-0.44.0b2.zip -d research-source
+unzip -n hermes-foundation-bridge-0.14.0b1.zip -d foundation-source
 ```
 
 ## Установка из проверенных байтов
@@ -32,9 +34,10 @@ import json, subprocess
 from pathlib import Path
 for folder in ("research-source", "foundation-source"):
     root = Path(folder).resolve()
-    manifest = json.loads((root / "bundle-manifest.json").read_text())
+    manifest = json.loads((root / "bundle-manifest.json").read_text(encoding="utf-8"))
     files = [row["path"] for row in manifest["files"]] + ["bundle-manifest.json"]
     subprocess.run(["git", "-C", str(root), "init", "-b", "release"], check=True)
+    subprocess.run(["git", "-C", str(root), "config", "core.autocrlf", "false"], check=True)
     subprocess.run(["git", "-C", str(root), "add", "--", *files], check=True)
     subprocess.run(["git", "-C", str(root), "commit", "-m", "Verified Hermes UDR beta package"], check=True)
 PYCODE
@@ -58,4 +61,4 @@ hermes plugins enable ultra-deep-research --no-allow-tool-override
 
 Существующий управляющий сеанс создаёт ResearchWorkContractV1, получает задачу/аренду и вызывает `run_in_host` на своём AIAgent. Модель не назначает себе допуск. Пример — [интерфейсы Foundation](../reference/foundation.md). Настройка контейнерного терминала не изолирует Python плагина: в режиме foundation исходные файлы обрабатывает отдельный разрешённый обработчик.
 
-Подпись не включает службы и не активирует экземпляр автоматически. Копируйте Foundation ZIP, его .minisig и открытый ключ в `$HERMES_FOUNDATION_ROOT/releases/hermes-foundation-bridge-0.13.0b1/`, затем проверяйте `foundation_release_verify` с версией 0.13.0b1 и исходным commit из манифеста пакета. Производственное включение остаётся решением владельца экземпляра.
+Подпись не включает службы и не активирует экземпляр автоматически. Копируйте Foundation ZIP, его .minisig и открытый ключ в `$HERMES_FOUNDATION_ROOT/releases/hermes-foundation-bridge-0.14.0b1/`, затем проверяйте `foundation_release_verify` с версией 0.14.0b1 и исходным commit из манифеста пакета. Производственное включение остаётся решением владельца экземпляра.

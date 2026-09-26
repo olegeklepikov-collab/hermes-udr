@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+from contextlib import closing
 import tempfile
 import unittest
 from pathlib import Path
@@ -43,7 +44,7 @@ def trace_request(**changes: object) -> dict:
 class ObservabilityTests(unittest.TestCase):
     def test_reconciliation_does_not_retarget_modified_spool_identity(self):
         self.service.record(trace_request(collector_available=False))
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             value = json.loads(
                 connection.execute("SELECT envelope_json FROM trace_spool").fetchone()[
                     0
@@ -57,7 +58,7 @@ class ObservabilityTests(unittest.TestCase):
             {"schema_version": 1, "collector_available": True}
         )
         self.assertEqual(result["conflicting_trace_ids"], ["TRACE-240"])
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             self.assertEqual(
                 connection.execute("SELECT COUNT(*) FROM traces").fetchone()[0], 0
             )
@@ -70,7 +71,7 @@ class ObservabilityTests(unittest.TestCase):
         with self.assertRaises(BridgeError) as caught:
             self.service.record(trace_request(run_id="DIFFERENT-RUN"))
         self.assertEqual(caught.exception.code, "trace_id_conflict")
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             self.assertEqual(
                 connection.execute("SELECT run_id FROM traces").fetchall(),
                 [("RUN-240",)],
@@ -88,7 +89,7 @@ class ObservabilityTests(unittest.TestCase):
 
     def test_expiry_does_not_discard_conflicting_spool(self):
         self.service.record(trace_request(collector_available=False))
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             envelope = json.loads(
                 connection.execute("SELECT envelope_json FROM trace_spool").fetchone()[
                     0
@@ -105,13 +106,13 @@ class ObservabilityTests(unittest.TestCase):
         )
         self.assertEqual(result["expired_count"], 0)
         self.assertEqual(result["conflicting_trace_ids"], ["TRACE-240"])
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             self.assertEqual(
                 connection.execute("SELECT COUNT(*) FROM trace_spool").fetchone()[0], 1
             )
 
         self.service.record(trace_request(trace_id="NEW", collector_available=False))
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             self.assertEqual(
                 connection.execute(
                     "SELECT trace_id FROM trace_spool ORDER BY trace_id"
@@ -140,7 +141,7 @@ class ObservabilityTests(unittest.TestCase):
         request = trace_request(collector_available=False)
         self.service.record(request)
         self.service.record(trace_request(trace_id="OTHER", collector_available=False))
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             envelope = json.loads(
                 connection.execute(
                     "SELECT envelope_json FROM trace_spool WHERE trace_id=?",
@@ -155,7 +156,7 @@ class ObservabilityTests(unittest.TestCase):
         )
         self.assertEqual(result["conflicting_trace_ids"], [request["trace_id"]])
         self.assertEqual(result["moved_count"], 1)
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             self.assertEqual(
                 connection.execute("SELECT trace_id FROM trace_spool").fetchall(),
                 [(request["trace_id"],)],
@@ -173,7 +174,7 @@ class ObservabilityTests(unittest.TestCase):
         repeated = self.service.record(trace_request(collector_available=False))
         self.assertTrue(repeated["idempotent_existing"])
         self.assertEqual(repeated["status"], "recorded")
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             self.assertEqual(
                 connection.execute("SELECT COUNT(*) FROM trace_spool").fetchone()[0], 0
             )
@@ -192,7 +193,7 @@ class ObservabilityTests(unittest.TestCase):
         self.service.record(
             trace_request(trace_id="KEPT-SPOOL", collector_available=False)
         )
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             connection.execute("DROP TABLE hook_queue")
             before = {
                 table: connection.execute(
@@ -204,7 +205,7 @@ class ObservabilityTests(unittest.TestCase):
             self.service.health({"schema_version": 1})["status"], "blocked"
         )
         self.service.migrate({"schema_version": 1, "apply": True})
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             after = {
                 table: connection.execute(
                     f"SELECT * FROM {table} ORDER BY trace_id"

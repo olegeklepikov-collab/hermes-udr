@@ -1,0 +1,14 @@
+server.default_listen_address=127.0.0.1
+server.default_advertised_address=localhost
+server.bolt.enabled=true
+server.bolt.listen_address=:7687
+server.http.enabled=true
+server.http.listen_address=:7474
+server.https.enabled=false
+server.memory.heap.initial_size=512m
+server.memory.heap.max_size=1g
+server.memory.pagecache.size=512m
+# Set absolute native paths before use; Windows paths should use forward slashes.
+server.directories.data=/ABSOLUTE/UDR_STATE/neo4j/data
+server.directories.logs=/ABSOLUTE/UDR_STATE/neo4j/logs
+server.directories.run=/ABSOLUTE/UDR_STATE/neo4j/run

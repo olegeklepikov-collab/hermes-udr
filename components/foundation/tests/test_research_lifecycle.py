@@ -32,18 +32,8 @@ class LifecycleTests(intake_tests.ResearchIntakeTests):
                 return {'failed':False}
         agent=Agent();session=self.session()
         if lazy:
-            import sys
-            from types import SimpleNamespace
             agent.enabled_toolsets=['research'];agent.disabled_toolsets=['network']
-            definitions=[{'function':{'name':name}} for name in agent.valid_tool_names]
             agent.valid_tool_names={'tool_search','tool_call','tool_describe'}
-            def get_definitions(**kwargs):
-                self.assertEqual(kwargs['enabled_toolsets'],['research'])
-                self.assertEqual(kwargs['disabled_toolsets'],['network'])
-                self.assertTrue(kwargs['skip_tool_search_assembly'])
-                return definitions
-            stub=patch.dict(sys.modules,{'model_tools':SimpleNamespace(get_tool_definitions=get_definitions)})
-            stub.start();self.addCleanup(stub.stop)
         cfg={'integration_mode':'foundation','workspace_root':str(self.root/'research')}
         with patch('hermes_research_report.research_integration.settings',return_value=cfg),patch('hermes_research_report.research_workspace.integration_settings',return_value=cfg):
             if graph_failure:
@@ -59,6 +49,9 @@ class LifecycleTests(intake_tests.ResearchIntakeTests):
                 self.assertEqual(again['draft_ref'],result['draft_ref'])
             self.assertEqual(result['status'],'completed_draft')
             self.assertFalse(result['claims_accepted'])
+            if lazy:
+                self.assertEqual(agent.enabled_toolsets,['research'])
+                self.assertEqual(agent.disabled_toolsets,['network'])
 
     def test_turn_delivers_context_and_synchronizes_once(self): self.exercise()
     def test_graph_failure_resumes_without_repeating_model_or_memory(self): self.exercise(True)

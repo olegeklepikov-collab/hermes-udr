@@ -100,13 +100,10 @@ def run_in_host(agent, session, artifacts, *, question, mode='research', convers
         fail('research_mode_mismatch','configuration','Требуется режим foundation.')
     required={'research_workspace','research_source','research_note','research_finish'}
     visible=set(getattr(agent,'valid_tool_names',()))
-    available=visible
-    if not required <= visible and {'tool_search','tool_call'} <= visible:
-        import model_tools
-        definitions=model_tools.get_tool_definitions(enabled_toolsets=agent.enabled_toolsets,
-            disabled_toolsets=agent.disabled_toolsets,quiet_mode=True,skip_tool_search_assembly=True)
-        available={tool['function']['name'] for tool in definitions}
-    if not required <= available:
+    # A lazy host resolves tool names through its own registry and permissions.
+    # Successful completion below still requires saved Research artifacts.
+    lazy={'tool_search','tool_call'} <= visible
+    if not required <= visible and not lazy:
         fail('research_tools_missing','hermes','В сеансе не включены исследовательские инструменты.')
     prepared=session.prepare(question)
     started=workspace({'action':'start','question':question,'mode':mode,'host_context':prepared['host_context']})

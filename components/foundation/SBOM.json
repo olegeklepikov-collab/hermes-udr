@@ -7,7 +7,7 @@
     "component": {
       "type": "application",
       "name": "hermes-foundation-bridge",
-      "version": "0.13.0b1",
+      "version": "0.14.0b1",
       "licenses": [
         {
           "license": {
@@ -27,8 +27,8 @@
     {
       "type": "library",
       "name": "hermes-research-report",
-      "version": "0.44.0b1",
-      "purl": "pkg:pypi/hermes-research-report@0.44.0b1"
+      "version": "0.44.0b2",
+      "purl": "pkg:pypi/hermes-research-report@0.44.0b2"
     },
     {
       "type": "application",
@@ -58,24 +58,9 @@
       "scope": "required"
     },
     {
-      "type": "library",
-      "name": "falkordb",
-      "version": "1.7.1",
-      "purl": "pkg:pypi/falkordb@1.7.1",
-      "scope": "required"
-    },
-    {
-      "type": "container",
-      "name": "falkordb/falkordb",
-      "version": "4.20.4",
-      "bom-ref": "pkg:docker/falkordb/falkordb@sha256%3Aadbddd418916c25618564ff8597a919b08bc76452ebeb74eb985c38d7281df62",
-      "scope": "required"
-    },
-    {
-      "type": "container",
-      "name": "zepai/graphiti",
-      "version": "0.30.2",
-      "bom-ref": "pkg:docker/zepai/graphiti@sha256%3A21818c8a8e3b0513fe167370527fec32ed117e98bcc3423f9eb3bc6c73af7d43",
+      "type": "application",
+      "name": "Neo4j",
+      "version": "5.26.31",
       "scope": "required"
     },
     {
@@ -92,16 +77,21 @@
       "scope": "required"
     },
     {
-      "type": "container",
-      "name": "node",
-      "version": "24.18.0-bookworm",
-      "bom-ref": "pkg:docker/node@sha256%3A5711a0d445a1af54af9589066c646df387d1831a608226f4cd694fc59e745059",
+      "type": "application",
+      "name": "Node.js",
       "scope": "required"
     },
     {
       "type": "application",
       "name": "bd",
       "version": "1.1.0",
+      "scope": "required"
+    },
+    {
+      "type": "library",
+      "name": "psutil",
+      "version": "7.2.2",
+      "purl": "pkg:pypi/psutil@7.2.2",
       "scope": "required"
     }
   ]

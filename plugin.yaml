@@ -1,5 +1,5 @@
 name: ultra-deep-research
-version: 0.44.0b1
+version: 0.44.0b2
 description: "Wide and deep research through native Hermes agents, a shared corpus and cited analysis."
 kind: standalone
 entry_point: plugin.py

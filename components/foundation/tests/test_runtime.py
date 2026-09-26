@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+from contextlib import closing
 import tempfile
 import unittest
 from datetime import UTC, datetime, timedelta
@@ -115,7 +116,7 @@ class RuntimeCoordinatorTests(unittest.TestCase):
     ) -> None:
         payload = {"session_id": "A", "turn_id": "T-1"}
         original = self.coordinator.record_hook("pre_llm_call", payload)
-        with sqlite3.connect(self.coordinator.database) as connection:
+        with closing(sqlite3.connect(self.coordinator.database)) as connection, connection:
             connection.execute(
                 "UPDATE hook_events SET event_key=? WHERE event_id=?",
                 ("pre_llm_call:T-1", original["event_id"]),

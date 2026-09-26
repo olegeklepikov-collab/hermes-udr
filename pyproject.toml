@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hermes-research-report"
-version = "0.44.0b1"
+version = "0.44.0b2"
 description = "Wide and deep research with native Hermes agents and a shared evidence corpus"
 readme = "README.md"
 license = "Apache-2.0"

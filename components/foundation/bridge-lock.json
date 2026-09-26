@@ -2,7 +2,7 @@
   "schema_version": 1,
   "bridge": {
     "name": "hermes-foundation-bridge",
-    "version": "0.13.0b1",
+    "version": "0.14.0b1",
     "source_commit_binding": "bundle-manifest.json#source_commit",
     "source_tree_binding": "bundle-manifest.json#source_tree_clean",
     "signature_status": "minisign_external",
@@ -26,7 +26,7 @@
     ]
   },
   "research_report": {
-    "version": "0.44.0b1",
+    "version": "0.44.0b2",
     "bundle_sha256": "c5b416f76957aeee3a5797cb2f5d0e95105135fa55d5691f0192b1c0552db338"
   },
   "dolt_sql_authority": {
@@ -50,30 +50,29 @@
   },
   "graphiti": {
     "version": "0.30.2",
-    "base_image_digest": "sha256:21818c8a8e3b0513fe167370527fec32ed117e98bcc3423f9eb3bc6c73af7d43",
-    "runtime_image": "hermes-foundation-graphiti:0.30.2-falkor1",
-    "runtime_image_id": "sha256:c345d72434f5962e0336d3bdeb5c347b0ef180541994a38ec46a09bc3f1727fa",
-    "falkordb_client_version": "1.7.1",
+    "runtime": "native_python_worker",
+    "python_path_ref": "native-runtime.json#python_path",
+    "graph_backend": "neo4j",
     "httpx_compatibility_version": "0.28.1",
-    "database": "hermes_foundation",
+    "database": "neo4j",
     "write_authority": "hermes-foundation-bridge"
   },
-  "falkordb": {
-    "version": "4.20.4",
-    "image_digest": "sha256:adbddd418916c25618564ff8597a919b08bc76452ebeb74eb985c38d7281df62",
-    "network": "hermes-foundation-net",
-    "container": "hermes-foundation-falkordb",
-    "published_endpoints": []
+  "neo4j": {
+    "version": "5.26.31",
+    "uri_ref": "native-runtime.json#neo4j_uri",
+    "user_ref": "native-runtime.json#neo4j_user",
+    "password_file_ref": "native-runtime.json#neo4j_password_file",
+    "network": "loopback_bolt"
   },
   "agentmemory": {
     "version": "0.9.29",
     "npm_shasum": "800309cb9e83ee5efc10739f8b481d79fa5544df",
     "iii_engine_version": "0.11.2",
-    "node_base_digest": "sha256:5711a0d445a1af54af9589066c646df387d1831a608226f4cd694fc59e745059",
-    "runtime_image": "hermes-foundation-agentmemory:0.9.29-bridge2",
-    "runtime_image_id": "sha256:9a780b4f76d3d7ea507ff3581b9a8a08885e2d9037aec52e58daa5479043079e",
+    "runtime": "native_node_worker",
+    "node_path_ref": "native-runtime.json#node_path",
+    "url_ref": "native-runtime.json#agentmemory_url",
     "scope_mode": "isolated",
-    "published_endpoints": []
+    "network": "loopback_http"
   },
   "beads": {
     "version": "1.1.0",

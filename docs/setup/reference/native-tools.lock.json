@@ -1,0 +1,145 @@
+{
+  "generated": "2026-09-26",
+  "hermes_commit": "2034126e0d1f397b4612782156097243dbbdc819",
+  "release": "v0.44.0-beta.2",
+  "assets": {
+    "beads_1.1.0_darwin_amd64.tar.gz": {
+      "url": "https://github.com/gastownhall/beads/releases/download/v1.1.0/beads_1.1.0_darwin_amd64.tar.gz",
+      "sha256": "5d7d30fdadcf012b7e0c1933a62cdfaef106e2561509b904e50a6733621cf8da",
+      "repository": "gastownhall/beads",
+      "tag": "v1.1.0"
+    },
+    "beads_1.1.0_darwin_arm64.tar.gz": {
+      "url": "https://github.com/gastownhall/beads/releases/download/v1.1.0/beads_1.1.0_darwin_arm64.tar.gz",
+      "sha256": "c42e24d83b258f7ba9f52a6d2d5f6b055869dfe7807165055988b12e7ea8c564",
+      "repository": "gastownhall/beads",
+      "tag": "v1.1.0"
+    },
+    "beads_1.1.0_linux_amd64.tar.gz": {
+      "url": "https://github.com/gastownhall/beads/releases/download/v1.1.0/beads_1.1.0_linux_amd64.tar.gz",
+      "sha256": "b0f3dd607c3fb989ee08d0a6854fba80d0402971eb108f9af6170bc14d491a34",
+      "repository": "gastownhall/beads",
+      "tag": "v1.1.0"
+    },
+    "beads_1.1.0_linux_arm64.tar.gz": {
+      "url": "https://github.com/gastownhall/beads/releases/download/v1.1.0/beads_1.1.0_linux_arm64.tar.gz",
+      "sha256": "e64eb6f5f998c9eae3ef9ec786f5f1c907ab3ed04fe220ebf265ca9952e21b2f",
+      "repository": "gastownhall/beads",
+      "tag": "v1.1.0"
+    },
+    "beads_1.1.0_windows_amd64.zip": {
+      "url": "https://github.com/gastownhall/beads/releases/download/v1.1.0/beads_1.1.0_windows_amd64.zip",
+      "sha256": "12b1d37344d3b1543301e21a2b9ed3ab6ae009f0418441f3de5f762b40769a6b",
+      "repository": "gastownhall/beads",
+      "tag": "v1.1.0"
+    },
+    "beads_1.1.0_windows_arm64.zip": {
+      "url": "https://github.com/gastownhall/beads/releases/download/v1.1.0/beads_1.1.0_windows_arm64.zip",
+      "sha256": "c2f3fc50407896336bafaab74e955f632fdfb487579fd24e44d766ab05792f7f",
+      "repository": "gastownhall/beads",
+      "tag": "v1.1.0"
+    },
+    "dolt-darwin-amd64.tar.gz": {
+      "url": "https://github.com/dolthub/dolt/releases/download/v2.2.1/dolt-darwin-amd64.tar.gz",
+      "sha256": "9aed2bcc52704f33adf1c89b7d8ff9d160e28db9ae60ef254e7af6ec68977f99",
+      "repository": "dolthub/dolt",
+      "tag": "v2.2.1"
+    },
+    "dolt-darwin-arm64.tar.gz": {
+      "url": "https://github.com/dolthub/dolt/releases/download/v2.2.1/dolt-darwin-arm64.tar.gz",
+      "sha256": "22e56eea229ae9a661f671fb335f472ce6c72bc57244d9dbdde97d8c042037c4",
+      "repository": "dolthub/dolt",
+      "tag": "v2.2.1"
+    },
+    "dolt-linux-amd64.tar.gz": {
+      "url": "https://github.com/dolthub/dolt/releases/download/v2.2.1/dolt-linux-amd64.tar.gz",
+      "sha256": "3bbcc98bd37efe1f57c28e8bf381f94bcaf083284cd090b4abd5b735d28e2d56",
+      "repository": "dolthub/dolt",
+      "tag": "v2.2.1"
+    },
+    "dolt-linux-arm64.tar.gz": {
+      "url": "https://github.com/dolthub/dolt/releases/download/v2.2.1/dolt-linux-arm64.tar.gz",
+      "sha256": "f74edab6cdaaa43fabbf12c8589a74c7e9c55c04c9d1db0b5441438bf0ebabba",
+      "repository": "dolthub/dolt",
+      "tag": "v2.2.1"
+    },
+    "dolt-windows-amd64.zip": {
+      "url": "https://github.com/dolthub/dolt/releases/download/v2.2.1/dolt-windows-amd64.zip",
+      "sha256": "829ce18295c3d5730f2219bf2451c96da5d6d78545fbbf3272739d61b6b8b67e",
+      "repository": "dolthub/dolt",
+      "tag": "v2.2.1"
+    },
+    "iii-aarch64-apple-darwin.tar.gz": {
+      "url": "https://github.com/iii-hq/iii/releases/download/iii/v0.11.2/iii-aarch64-apple-darwin.tar.gz",
+      "sha256": "e7834c44fefb2b5343d327102a941419245f7fff447f95373857a04b033fb1bd",
+      "repository": "iii-hq/iii",
+      "tag": "iii/v0.11.2"
+    },
+    "iii-aarch64-pc-windows-msvc.zip": {
+      "url": "https://github.com/iii-hq/iii/releases/download/iii/v0.11.2/iii-aarch64-pc-windows-msvc.zip",
+      "sha256": "3f90d7da08140bc86e855a7eb63969f1ca56ce3375a30fb9cdffcc4bb86c8cfa",
+      "repository": "iii-hq/iii",
+      "tag": "iii/v0.11.2"
+    },
+    "iii-aarch64-unknown-linux-gnu.tar.gz": {
+      "url": "https://github.com/iii-hq/iii/releases/download/iii/v0.11.2/iii-aarch64-unknown-linux-gnu.tar.gz",
+      "sha256": "e0d35ee54a6b6c8a46576ab661e1711d11eb4dafeb1be8e1dbd1cc0ccb48b615",
+      "repository": "iii-hq/iii",
+      "tag": "iii/v0.11.2"
+    },
+    "iii-x86_64-apple-darwin.tar.gz": {
+      "url": "https://github.com/iii-hq/iii/releases/download/iii/v0.11.2/iii-x86_64-apple-darwin.tar.gz",
+      "sha256": "2b67e5f18833c415f4cb16a9e13b0e953555e0ca138682bf24894abe8b80b836",
+      "repository": "iii-hq/iii",
+      "tag": "iii/v0.11.2"
+    },
+    "iii-x86_64-pc-windows-msvc.zip": {
+      "url": "https://github.com/iii-hq/iii/releases/download/iii/v0.11.2/iii-x86_64-pc-windows-msvc.zip",
+      "sha256": "6b1a624be64367aadcbcf5654543fc3029ebb73f3092f4de0d85c3e2e7fac402",
+      "repository": "iii-hq/iii",
+      "tag": "iii/v0.11.2"
+    },
+    "iii-x86_64-unknown-linux-gnu.tar.gz": {
+      "url": "https://github.com/iii-hq/iii/releases/download/iii/v0.11.2/iii-x86_64-unknown-linux-gnu.tar.gz",
+      "sha256": "9c83c47788b4ef4beeb65dd9bf37e94f993770cd3db874464c3ce1cdc92352cd",
+      "repository": "iii-hq/iii",
+      "tag": "iii/v0.11.2"
+    },
+    "neo4j-community-5.26.31-unix.tar.gz": {
+      "url": "https://dist.neo4j.org/neo4j-community-5.26.31-unix.tar.gz",
+      "sha256": "f8fc23340561405f1ff10ca6ac2d317d095d3c74509a616883c45d7a61f5cfec",
+      "source": "https://neo4j.com/deployment-center/"
+    },
+    "neo4j-community-5.26.31-windows.zip": {
+      "url": "https://dist.neo4j.org/neo4j-community-5.26.31-windows.zip",
+      "sha256": "e8d91edb1b0864e8602e3a41ceda7555da5ebe4028d62da09b5dfb15eff297c4",
+      "source": "https://neo4j.com/deployment-center/"
+    },
+    "minisign-0.12-win64.zip": {
+      "url": "https://github.com/jedisct1/minisign/releases/download/0.12/minisign-0.12-win64.zip",
+      "sha256": "37b600344e20c19314b2e82813db2bfdcc408b77b876f7727889dbd46d539479",
+      "digest_source": "Computed from official HTTPS release download on 2026-09-26; upstream API has no asset digest"
+    }
+  },
+  "pins": {
+    "graphiti": "0.30.2",
+    "graphiti_commit": "eaa4128681bc53487138a4bbc22d58336ebe70d2",
+    "agentmemory": "0.9.29",
+    "agentmemory_commit": "2d38dafede67d0d4ed920cde94d2106e98825b8a",
+    "zvec": "0.7.0",
+    "zvec_mcp": "0.3.0",
+    "zvec_mcp_commit": "0287aa883974f2f7602468bec796cad6178952a7",
+    "serena": "1.7.0",
+    "sqlite_windows": "3.53.4",
+    "neo4j": "5.26.31"
+  },
+  "research_version": "0.44.0b2",
+  "foundation_version": "0.14.0b1",
+  "signing_public_key_sha256": "2295aaab3cb418c4f81a867a701a8187e8cdd0f73105a1f318c1faf981dfdb1a",
+  "mirage": {
+    "package": "mirage-ai==0.0.6",
+    "python": "3.12",
+    "mcp": "1.30.0",
+    "source_commit": "5678c94557ab4d00f44b1a9b18be562ac1e643c4"
+  }
+}

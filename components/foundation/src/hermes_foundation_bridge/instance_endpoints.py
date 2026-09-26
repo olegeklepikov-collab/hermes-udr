@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import stat
 from pathlib import Path
 
 from .errors import fail
+from .platform_io import windows_private_file_allowed
 
 DEFAULT_PREFIX = "hermes-foundation"
 DEFAULT_DOLT_SQL_PORT = 3317
@@ -29,7 +31,8 @@ def instance_endpoints(root: Path) -> dict[str, object]:
                 "Неверный файл адресов.",
             )
         mode = path.stat().st_mode
-        if not stat.S_ISREG(mode) or mode & 0o022 or path.stat().st_size > 256:
+        private = windows_private_file_allowed(path) if os.name == "nt" else not mode & 0o022
+        if not stat.S_ISREG(mode) or not private or path.stat().st_size > 256:
             fail(
                 "instance_endpoints_invalid",
                 "instance_endpoints",

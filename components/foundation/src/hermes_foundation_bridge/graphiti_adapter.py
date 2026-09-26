@@ -64,13 +64,18 @@ class GraphitiAdapter:
     @contextmanager
     def _circuit_guard(self):
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
-        descriptor = os.open(self.circuit_lock, os.O_CREAT | os.O_RDWR, 0o600)
+        descriptor = fcntl.open_lock_nofollow(self.circuit_lock)
+        acquired = False
         try:
             fcntl.flock(descriptor, fcntl.LOCK_EX)
+            acquired = True
             yield
         finally:
-            fcntl.flock(descriptor, fcntl.LOCK_UN)
-            os.close(descriptor)
+            try:
+                if acquired:
+                    fcntl.flock(descriptor, fcntl.LOCK_UN)
+            finally:
+                os.close(descriptor)
 
     def _circuit_state(self) -> dict[str, object]:
         if not self.circuit_path.is_file():
@@ -257,7 +262,7 @@ class GraphitiAdapter:
                 "runtime.graphiti",
                 "Небезопасный путь блокировки артефакта.",
             )
-        descriptor = os.open(path, os.O_CREAT | os.O_RDWR | os.O_NOFOLLOW, 0o600)
+        descriptor = fcntl.open_lock_nofollow(path)
         acquired = False
         try:
             deadline = time.monotonic() + ARTIFACT_LOCK_TIMEOUT_SECONDS

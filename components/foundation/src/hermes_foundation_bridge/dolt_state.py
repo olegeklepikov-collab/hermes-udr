@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from datetime import UTC, datetime
@@ -44,6 +45,8 @@ class DoltStateAdapter:
             cwd=database_root,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            env={**os.environ, "DOLT_DISABLE_EVENT_FLUSH": "1"},
             check=False,
             timeout=30,
         )

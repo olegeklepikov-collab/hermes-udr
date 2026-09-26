@@ -20,12 +20,14 @@ from hermes_foundation_bridge.dolt_sql import AUTHORITY_MANIFEST, DoltSQLAdapter
 from hermes_foundation_bridge.dolt_state import DoltStateAdapter
 from hermes_foundation_bridge.errors import BridgeError
 from hermes_foundation_bridge.native_runtime import assert_private_file
+from hermes_foundation_bridge.platform_io import secure_file
 from scripts.provision_dolt_sql import provision
 
 
 @unittest.skipUnless(
-    shutil.which("dolt") and importlib.util.find_spec("pymysql"),
-    "Dolt and PyMySQL are required",
+    shutil.which("dolt") and importlib.util.find_spec("pymysql")
+    and importlib.util.find_spec("psutil"),
+    "Dolt, PyMySQL, and psutil are required",
 )
 class DoltSQLAdapterTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -243,11 +245,10 @@ class DoltSQLAdapterTests(unittest.TestCase):
             probe.rollback()
         finally:
             probe.close()
-        if os.name != "nt":
-            # Dolt rewrites its branch file with broad POSIX mode during this test.
-            with self.assertRaisesRegex(ValueError, "Права файла SQL-службы"):
-                adapter._configuration()
-            adapter.branch_control_path.chmod(0o600)
+        # Dolt replaces the file; protected permissions must be re-applied.
+        with self.assertRaisesRegex(ValueError, "Права файла SQL-службы"):
+            adapter._configuration()
+        secure_file(adapter.branch_control_path)
         self.assertEqual(
             adapter.get(
                 {

@@ -1,0 +1,69 @@
+{
+  "workers": [
+    {
+      "name": "iii-worker-manager",
+      "config": {
+        "host": "127.0.0.1",
+        "port": 49134
+      }
+    },
+    {
+      "name": "iii-http",
+      "config": {
+        "host": "127.0.0.1",
+        "port": 3111,
+        "default_timeout": 180000
+      }
+    },
+    {
+      "name": "iii-state",
+      "config": {
+        "adapter": {
+          "name": "kv",
+          "config": {
+            "store_method": "file_based",
+            "file_path": "/ABSOLUTE/UDR_STATE/agentmemory/state_store.db"
+          }
+        }
+      }
+    },
+    {
+      "name": "iii-queue",
+      "config": {
+        "adapter": {
+          "name": "builtin"
+        }
+      }
+    },
+    {
+      "name": "iii-pubsub",
+      "config": {
+        "adapter": {
+          "name": "local"
+        }
+      }
+    },
+    {
+      "name": "iii-cron",
+      "config": {
+        "adapter": {
+          "name": "kv"
+        }
+      }
+    },
+    {
+      "name": "iii-stream",
+      "config": {
+        "host": "127.0.0.1",
+        "port": 3112,
+        "adapter": {
+          "name": "kv",
+          "config": {
+            "store_method": "file_based",
+            "file_path": "/ABSOLUTE/UDR_STATE/agentmemory/stream_store"
+          }
+        }
+      }
+    }
+  ]
+}

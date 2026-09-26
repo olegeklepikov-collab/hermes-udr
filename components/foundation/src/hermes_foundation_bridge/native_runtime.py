@@ -99,7 +99,7 @@ def invoke_worker(executable: str, worker: Path, request: dict[str, object], *, 
     try:
         completed = subprocess.run(
             [executable, str(worker)], input=json.dumps(request), capture_output=True,
-            text=True, check=False, timeout=30,
+            text=True, encoding="utf-8", check=False, timeout=30,
         )
     except (OSError, subprocess.SubprocessError) as error:
         raise BridgeError(failure_code, error_path, "Операция локальной службы отклонена.") from error

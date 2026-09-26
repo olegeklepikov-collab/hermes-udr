@@ -114,6 +114,66 @@ def open_read_nofollow(path: Path, *, nonblocking: bool = False) -> int:
             kernel.CloseHandle(handle)
 
 
+def open_lock_nofollow(path: Path) -> int:
+    """Create/open a binary lock file without following its final path component."""
+    if not _IS_WINDOWS:
+        return os.open(
+            path, os.O_CREAT | os.O_RDWR | BINARY_FLAG | os.O_NOFOLLOW, 0o600
+        )
+    import ctypes
+    from ctypes import wintypes
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+
+    class FileTime(ctypes.Structure):
+        _fields_ = [("low", wintypes.DWORD), ("high", wintypes.DWORD)]
+
+    class FileInfo(ctypes.Structure):
+        _fields_ = [
+            ("attributes", wintypes.DWORD),
+            ("creation", FileTime),
+            ("access", FileTime),
+            ("write", FileTime),
+            ("volume", wintypes.DWORD),
+            ("size_high", wintypes.DWORD),
+            ("size_low", wintypes.DWORD),
+            ("links", wintypes.DWORD),
+            ("file_index_high", wintypes.DWORD),
+            ("file_index_low", wintypes.DWORD),
+        ]
+
+    kernel.CreateFileW.argtypes = [
+        wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p,
+        wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE,
+    ]
+    kernel.CreateFileW.restype = wintypes.HANDLE
+    kernel.GetFileInformationByHandle.argtypes = [
+        wintypes.HANDLE, ctypes.POINTER(FileInfo),
+    ]
+    kernel.GetFileInformationByHandle.restype = wintypes.BOOL
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    handle = kernel.CreateFileW(
+        str(path), 0xC0000000, 0x00000007, None, 4, 0x00200000, None
+    )
+    if handle == wintypes.HANDLE(-1).value:
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        info = FileInfo()
+        if not kernel.GetFileInformationByHandle(handle, ctypes.byref(info)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        if info.attributes & (0x00000400 | 0x00000010):
+            raise OSError(errno.ELOOP, "link or directory rejected", str(path))
+        descriptor = msvcrt.open_osfhandle(handle, os.O_RDWR | BINARY_FLAG)
+        handle = None
+        if not stat.S_ISREG(os.fstat(descriptor).st_mode):
+            os.close(descriptor)
+            raise OSError(errno.EINVAL, "regular lock file required", str(path))
+        return descriptor
+    finally:
+        if handle is not None:
+            kernel.CloseHandle(handle)
+
+
 def private_file(descriptor: int) -> None:
     """Restrict a newly created file, failing closed if Windows ACL setup fails."""
     if not _IS_WINDOWS:

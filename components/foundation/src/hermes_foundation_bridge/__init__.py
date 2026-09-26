@@ -1,6 +1,6 @@
 """Greenfield Hermes foundation bridge."""
 
-__version__ = "0.13.0b1"
+__version__ = "0.14.0b1"
 
 from .agentmemory_adapter import AgentMemoryAdapter
 from .artifacts import ArtifactService

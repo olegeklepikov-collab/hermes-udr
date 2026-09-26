@@ -29,6 +29,7 @@ from hermes_foundation_bridge.instance_endpoints import instance_endpoints
 from scripts.manage_dolt_sql import manage
 from scripts.provision_dolt_sql import provision
 from tests.common import native_runtime_fixture
+from hermes_foundation_bridge.platform_io import secure_file
 
 
 class InstanceEndpointsTests(unittest.TestCase):
@@ -46,7 +47,7 @@ class InstanceEndpointsTests(unittest.TestCase):
         path.write_text(
             json.dumps({"schema_version": 1, "prefix": "e2e44", "dolt_sql_port": 43317})
         )
-        path.chmod(0o600)
+        secure_file(path)
 
     def test_default_manifests_remain_byte_equivalent(self) -> None:
         self.assertEqual(graph_manifest(self.root), GRAPH_MANIFEST)

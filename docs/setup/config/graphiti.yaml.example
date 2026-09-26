@@ -1,0 +1,31 @@
+server:
+  transport: http
+  host: 127.0.0.1
+  port: 8000
+llm:
+  provider: openai
+  model: ${GRAPHITI_LLM_MODEL}
+  max_tokens: 4096
+  providers:
+    openai:
+      api_key: ${GRAPHITI_API_KEY}
+      api_url: ${GRAPHITI_BASE_URL}
+embedder:
+  provider: openai
+  model: ${GRAPHITI_EMBEDDER_MODEL}
+  dimensions: 1536
+  providers:
+    openai:
+      api_key: ${GRAPHITI_EMBEDDER_API_KEY}
+      api_url: ${GRAPHITI_EMBEDDER_BASE_URL}
+database:
+  provider: neo4j
+  providers:
+    neo4j:
+      uri: bolt://127.0.0.1:7687
+      username: neo4j
+      password: ${NEO4J_PASSWORD}
+      database: neo4j
+      use_parallel_runtime: false
+graphiti:
+  group_id: ${GRAPHITI_GROUP_ID}

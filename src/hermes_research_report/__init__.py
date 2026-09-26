@@ -290,4 +290,4 @@ __all__ = [
     "verify_document_graph",
     "verify_fragment",
 ]
-__version__ = "0.44.0b1"
+__version__ = "0.44.0b2"

@@ -33,8 +33,8 @@ class PlatformIOTests(unittest.TestCase):
             self.skipTest("POSIX branch")
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "writer.lock"
-            first = os.open(path, os.O_CREAT | os.O_RDWR, 0o600)
-            second = os.open(path, os.O_RDWR)
+            first = platform_io.open_lock_nofollow(path)
+            second = platform_io.open_lock_nofollow(path)
             try:
                 platform_io.flock(first, platform_io.LOCK_EX)
                 with self.assertRaises(BlockingIOError):
@@ -47,6 +47,21 @@ class PlatformIOTests(unittest.TestCase):
             finally:
                 os.close(second)
                 os.close(first)
+
+    def test_lock_open_rejects_final_symlink(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            target = Path(directory) / "target.lock"
+            target.write_bytes(b"foreign")
+            link = Path(directory) / "link.lock"
+            try:
+                link.symlink_to(target)
+            except OSError:
+                if os.name == "nt":
+                    self.skipTest("Windows symlink privilege unavailable")
+                raise
+            with self.assertRaises(OSError):
+                platform_io.open_lock_nofollow(link)
+            self.assertEqual(target.read_bytes(), b"foreign")
 
     def test_windows_branch_uses_real_locking_api_and_reports_contention(self) -> None:
         # This exercises dispatch only; it does not qualify Windows behavior.

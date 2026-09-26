@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sqlite3
+from contextlib import closing
 import tempfile
 import unittest
 from pathlib import Path
@@ -302,7 +303,7 @@ class ProfileTransportTests(unittest.TestCase):
         self.assertFalse(redelivered["delivery_observed"])
         self.assertFalse(redelivered["external_effect_performed"])
         self.assertEqual(redelivered["artifact_hash"], artifact_hash)
-        with sqlite3.connect(self.service.database) as connection:
+        with closing(sqlite3.connect(self.service.database)) as connection, connection:
             state, attempts = connection.execute(
                 "SELECT state,attempts FROM deliveries WHERE idempotency_key=?",
                 (prepared["idempotency_key"],),

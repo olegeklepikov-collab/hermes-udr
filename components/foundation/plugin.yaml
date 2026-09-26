@@ -1,5 +1,5 @@
 name: hermes-foundation-bridge
-version: 0.13.0b1
+version: 0.14.0b1
 description: Публичный greenfield-мост Hermes к новым службам состояния, исполнения, артефактов и доказательных фрагментов.
 author: Hermes Knowledge Work Project
 requires_hermes: ">=0.21.3"

@@ -49,9 +49,10 @@ class ArtifactServiceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Символическая"):
             self.service.ingest(self.request("ACQ-LINK", "link"))
         fifo = self.service.quarantine / "fifo"
-        os.mkfifo(fifo)
-        with self.assertRaisesRegex(ValueError, "обычный файл"):
-            self.service.ingest(self.request("ACQ-FIFO", "fifo"))
+        if hasattr(os, "mkfifo"):
+            os.mkfifo(fifo)
+            with self.assertRaisesRegex(ValueError, "обычный файл"):
+                self.service.ingest(self.request("ACQ-FIFO", "fifo"))
         outside = Path(self.directory.name) / "outside"
         outside.mkdir()
         (outside / "data").write_text("outside", encoding="utf-8")
@@ -158,7 +159,10 @@ class ArtifactServiceTests(unittest.TestCase):
 
     def test_recovery_reports_corrupt_and_special_metadata_without_blocking(self):
         (self.service.metadata / "bad.json").write_text("[]")
-        os.mkfifo(self.service.metadata / "fifo.json")
+        if hasattr(os, "mkfifo"):
+            os.mkfifo(self.service.metadata / "fifo.json")
+        else:
+            (self.service.metadata / "directory.json").mkdir()
         (self.service.metadata / "link.json").symlink_to(
             self.service.metadata / "bad.json"
         )

@@ -2,14 +2,16 @@
 
 **Wide and deep research inside Hermes — from a decomposed question to a retained source corpus and a cited analytical report.**
 
-[Русский](README.ru.md) · [Current release](https://github.com/olegeklepikov-collab/hermes-udr/releases/tag/v0.44.0-beta.1) · [Installation](docs/en/installation.md) · [Architecture](docs/en/architecture.md) · [Research workflows](docs/en/workflows.md)
+[Русский](README.ru.md) · [Current release](https://github.com/olegeklepikov-collab/hermes-udr/releases/tag/v0.44.0-beta.2) · [Installation](docs/en/installation.md) · [Architecture](docs/en/architecture.md) · [Research workflows](docs/en/workflows.md)
+Native macOS/Linux/Windows setup without Docker: [complete instructions](docs/setup/README.md).
+
 
 ## Current system
 
 | Component | Version | Responsibility |
 |---|---|---|
-| Ultra Deep Research | **0.44.0b1** | Research planning, acquisition, source storage, preliminary analysis and reporting |
-| Foundation Bridge | **0.13.0b1** | Host admission, artifact intake, canonical state, memory/graph lifecycle and recoverable finalization |
+| Ultra Deep Research | **0.44.0b2** | Research planning, acquisition, source storage, preliminary analysis and reporting |
+| Foundation Bridge | **0.14.0b1** | Host admission, artifact intake, canonical state, memory/graph lifecycle and recoverable finalization |
 
 This **signed operational beta** is the first release in the Hermes UDR repository and succeeds the previous Ultra Deep Research r153/v22 line. It replaces the old contract-heavy execution route with nine core research tools and native Hermes execution. Historical tags remain in the [predecessor repository](https://github.com/olegeklepikov-collab/ultra-deep-research). Integration is tested; universal scientific quality and production activation are not claimed.
 

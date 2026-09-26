@@ -1,0 +1,13 @@
+# Template only: configure named-user credentials before running a persistent server.
+log_level: info
+listener:
+  host: 127.0.0.1
+  port: 3317
+  max_connections: 32
+data_dir: /ABSOLUTE/UDR_STATE/dolt
+cfg_dir: /ABSOLUTE/UDR_STATE/dolt-config
+privilege_file: /ABSOLUTE/UDR_STATE/dolt-config/privileges.db
+branch_control_file: /ABSOLUTE/UDR_STATE/dolt-config/branch_control.db
+behavior:
+  read_only: false
+  dolt_transaction_commit: false

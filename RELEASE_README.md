@@ -1,4 +1,4 @@
-# Hermes UDR — исследовательское ядро 0.44.0b1 / Research core 0.44.0b1
+# Hermes UDR — исследовательское ядро 0.44.0b2 / Research core 0.44.0b2
 
 ## Русский
 

@@ -50,6 +50,7 @@ class BeadsAdapter:
                 [executable, "-C", str(self.root), *arguments, "--json"],
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
                 check=False,
                 timeout=30,
                 env=environment,

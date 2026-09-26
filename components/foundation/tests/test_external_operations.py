@@ -3,6 +3,7 @@
 import json
 import os
 import sqlite3
+from contextlib import closing
 import subprocess
 import sys
 import tempfile
@@ -75,7 +76,7 @@ class ExternalOperationTests(unittest.TestCase):
         result = json.loads(self.worker("normal").stdout)
         self.assertEqual(result["status"], "unknown_outcome")
         self.assertEqual((self.root / "provider-effects").read_text(), "effect\n")
-        with sqlite3.connect(self.root / "runtime/runtime.sqlite3") as db:
+        with closing(sqlite3.connect(self.root / "runtime/runtime.sqlite3")) as db, db:
             self.assertEqual(
                 db.execute("SELECT status FROM operations").fetchone()[0], "unknown"
             )

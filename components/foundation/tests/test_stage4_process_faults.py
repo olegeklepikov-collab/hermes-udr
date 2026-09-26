@@ -5,6 +5,7 @@ import json
 import os
 import shutil
 import sqlite3
+from contextlib import closing
 import subprocess
 import sys
 import tempfile
@@ -107,7 +108,7 @@ class StageFourProcessFaultTests(unittest.TestCase):
                 base = Path(temp)
                 root = base / "foundation"
                 (base / "mode").write_text("normal")
-                with sqlite3.connect(base / "provider.sqlite3") as db:
+                with closing(sqlite3.connect(base / "provider.sqlite3")) as db, db:
                     db.execute(
                         "CREATE TABLE facts(id TEXT PRIMARY KEY,payload TEXT,active INTEGER)"
                     )
@@ -180,7 +181,7 @@ class StageFourProcessFaultTests(unittest.TestCase):
                         call("put", "A", "NEW-F")["code"],
                         "graphiti_artifact_tombstoned",
                     )
-                with sqlite3.connect(base / "provider.sqlite3") as db:
+                with closing(sqlite3.connect(base / "provider.sqlite3")) as db, db:
                     facts = dict(db.execute("SELECT id,active FROM facts").fetchall())
                 self.assertEqual(facts, {"F": 0, "F-B": 1})
                 OBSERVATIONS.append(
@@ -202,7 +203,7 @@ class StageFourProcessFaultTests(unittest.TestCase):
                 base = Path(temp)
                 root = base / "foundation"
                 (base / "mode").write_text("normal")
-                with sqlite3.connect(base / "provider.sqlite3") as db:
+                with closing(sqlite3.connect(base / "provider.sqlite3")) as db, db:
                     db.execute(
                         "CREATE TABLE facts(id TEXT PRIMARY KEY,payload TEXT,active INTEGER)"
                     )
@@ -240,7 +241,7 @@ class StageFourProcessFaultTests(unittest.TestCase):
                 second = run(operation)
                 self.assertEqual(second["status"], "unknown_outcome")
                 self.assertFalse(second["external_call_attempted"])
-                with sqlite3.connect(base / "provider.sqlite3") as db:
+                with closing(sqlite3.connect(base / "provider.sqlite3")) as db, db:
                     effects = db.execute("SELECT COUNT(*) FROM effects").fetchone()[0]
                     rows = db.execute("SELECT active FROM facts").fetchall()
                 self.assertEqual(effects, 1 if operation == "put" else 2)
