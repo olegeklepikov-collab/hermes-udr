@@ -134,7 +134,9 @@ def private_directory(path: Path) -> None:
     kernel.CreateFileW.argtypes = [wintypes.LPCWSTR, wintypes.DWORD, wintypes.DWORD, ctypes.c_void_p, wintypes.DWORD, wintypes.DWORD, wintypes.HANDLE]
     kernel.CreateFileW.restype = wintypes.HANDLE
     kernel.CloseHandle.argtypes = [wintypes.HANDLE]
-    handle = kernel.CreateFileW(str(path), 0x00040000, 0x00000007, None, 3, 0x02000000, None)
+    # SetSecurityInfo may read existing inheritance while replacing the DACL.
+    # Match the working file path's WRITE_DAC | READ_CONTROL access request.
+    handle = kernel.CreateFileW(str(path), 0x00060000, 0x00000007, None, 3, 0x02200000, None)
     if handle == wintypes.HANDLE(-1).value:
         raise ctypes.WinError(ctypes.get_last_error())
     try:

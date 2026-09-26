@@ -92,6 +92,47 @@ class PlatformIOTests(unittest.TestCase):
                 platform_io.private_file(7)
 
     @unittest.skipUnless(os.name == "nt", "requires a real Windows host")
+    def test_windows_private_directory_sets_protected_acl(self) -> None:
+        import ctypes
+        from ctypes import wintypes
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "restricted"
+            path.mkdir()
+            platform_io.private_directory(path)
+            advapi = ctypes.WinDLL("advapi32", use_last_error=True)
+            kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+            security_descriptor = ctypes.c_void_p()
+            dacl = ctypes.c_void_p()
+            advapi.GetNamedSecurityInfoW.argtypes = [
+                wintypes.LPWSTR, wintypes.DWORD, wintypes.DWORD,
+                ctypes.c_void_p, ctypes.c_void_p,
+                ctypes.POINTER(ctypes.c_void_p), ctypes.c_void_p,
+                ctypes.POINTER(ctypes.c_void_p),
+            ]
+            advapi.GetNamedSecurityInfoW.restype = wintypes.DWORD
+            self.assertEqual(advapi.GetNamedSecurityInfoW(
+                str(path), 1, 0x4, None, None, ctypes.byref(dacl), None,
+                ctypes.byref(security_descriptor),
+            ), 0)
+            try:
+                control = wintypes.WORD()
+                revision = wintypes.DWORD()
+                advapi.GetSecurityDescriptorControl.argtypes = [
+                    ctypes.c_void_p, ctypes.POINTER(wintypes.WORD),
+                    ctypes.POINTER(wintypes.DWORD),
+                ]
+                advapi.GetSecurityDescriptorControl.restype = wintypes.BOOL
+                self.assertTrue(advapi.GetSecurityDescriptorControl(
+                    security_descriptor, ctypes.byref(control), ctypes.byref(revision)
+                ))
+                self.assertTrue(control.value & 0x1000)
+                self.assertTrue(dacl.value)
+            finally:
+                kernel.LocalFree.argtypes = [ctypes.c_void_p]
+                kernel.LocalFree(security_descriptor)
+
+    @unittest.skipUnless(os.name == "nt", "requires a real Windows host")
     def test_windows_private_file_sets_protected_single_entry_acl(self) -> None:
         import ctypes
         from ctypes import wintypes
