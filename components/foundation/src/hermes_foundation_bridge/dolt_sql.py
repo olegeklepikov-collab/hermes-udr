@@ -10,6 +10,7 @@ from typing import Any
 
 from .canonical import canonical_bytes, receipt, sha256_json
 from .config import child
+from .native_runtime import assert_private_file
 from .dolt_state import DATABASES, _now
 from .errors import BridgeError, fail
 from .instance_endpoints import instance_endpoints
@@ -101,13 +102,17 @@ class DoltSQLAdapter:
                 path.is_symlink()
                 or not path.is_file()
                 or not stat.S_ISREG(path.stat().st_mode)
-                or path.stat().st_mode & 0o077
+
             ):
                 fail(
                     "dolt_sql_secret_boundary",
                     "runtime.dolt",
                     "Права файла SQL-службы недействительны.",
                 )
+            try:
+                assert_private_file(path)
+            except (ValueError, OSError):
+                fail("dolt_sql_secret_boundary", "runtime.dolt", "Права файла SQL-службы недействительны.")
         password = self.credential_path.read_text(encoding="ascii").strip()
         if len(password) < 32 or len(password) > 256:
             fail(

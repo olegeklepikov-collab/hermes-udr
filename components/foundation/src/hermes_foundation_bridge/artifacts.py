@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import fcntl
 import hashlib
 import json
 import os
@@ -17,6 +16,7 @@ from typing import Any
 from .canonical import canonical_bytes, receipt
 from .config import child
 from .errors import BridgeError, fail
+from . import platform_io as fcntl
 from .validation import exact, identifier, integer, mapping, string
 
 
@@ -32,12 +32,8 @@ def _relative(value: object, path: str) -> str:
     return candidate.as_posix()
 
 
-def _fsync_directory(path: Path) -> None:
-    descriptor = os.open(path, os.O_RDONLY)
-    try:
-        os.fsync(descriptor)
-    finally:
-        os.close(descriptor)
+def _fsync_directory(path: Path) -> bool:
+    return fcntl.sync_directory(path)
 
 
 def _exclusive_json(path: Path, value: object) -> None:
@@ -45,7 +41,7 @@ def _exclusive_json(path: Path, value: object) -> None:
     descriptor, temporary_name = tempfile.mkstemp(prefix=".artifact-", dir=path.parent)
     temporary = Path(temporary_name)
     try:
-        os.fchmod(descriptor, 0o600)
+        fcntl.private_file(descriptor)
         written = 0
         while written < len(payload):
             written += os.write(descriptor, payload[written:])
@@ -91,7 +87,7 @@ class ArtifactService:
                         "Ссылка вместо каталога запрещена.",
                     )
                 directory.mkdir(parents=True, exist_ok=True, mode=0o700)
-                directory.chmod(0o700)
+                fcntl.private_directory(directory)
         return receipt(
             {
                 "schema_version": 1,
@@ -135,11 +131,8 @@ class ArtifactService:
                 "request.relative_path",
                 "Допустим только обычный файл.",
             )
-        flags = (
-            os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
-        )
         try:
-            descriptor = os.open(source, flags)
+            descriptor = fcntl.open_read_nofollow(source, nonblocking=True)
         except OSError as error:
             raise BridgeError(
                 "artifact_source_unavailable",
@@ -182,9 +175,16 @@ class ArtifactService:
 
     @contextmanager
     def _writer(self):
+        lock_path = child(self.root, ".writer.lock")
+        if lock_path.is_symlink():
+            fail(
+                "artifact_writer_lock_invalid",
+                "artifact_root",
+                "Недопустимый файл блокировки.",
+            )
         descriptor = os.open(
-            child(self.root, ".writer.lock"),
-            os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0),
+            lock_path,
+            os.O_CREAT | os.O_RDWR | fcntl.BINARY_FLAG | getattr(os, "O_NOFOLLOW", 0),
             0o600,
         )
         try:
@@ -224,12 +224,7 @@ class ArtifactService:
             for path in directory.glob(pattern):
                 if path.is_symlink():
                     continue
-                descriptor = os.open(
-                    path,
-                    os.O_RDONLY
-                    | getattr(os, "O_NOFOLLOW", 0)
-                    | getattr(os, "O_NONBLOCK", 0),
-                )
+                descriptor = fcntl.open_read_nofollow(path, nonblocking=True)
                 with os.fdopen(descriptor, "rb") as stream:
                     info = os.fstat(stream.fileno())
                     if not stat.S_ISREG(info.st_mode) or info.st_size > (
@@ -357,7 +352,7 @@ class ArtifactService:
             )
             temporary = Path(temporary_name)
             try:
-                os.fchmod(descriptor, 0o600)
+                fcntl.private_file(descriptor)
                 written = 0
                 while written < len(payload):
                     written += os.write(descriptor, payload[written:])
@@ -442,7 +437,7 @@ class ArtifactService:
                 "temporary_write": True,
                 "file_fsync": True,
                 "atomic_publish": True,
-                "directory_fsync": True,
+                "directory_fsync": os.name != "nt",
                 "metadata_committed": True,
                 "reconciled_temporary_refs": recovered,
                 "readback_verified": accepted,
@@ -462,12 +457,7 @@ class ArtifactService:
         corrupt_metadata = 0
         for path in self.metadata.glob("*.json"):
             try:
-                descriptor = os.open(
-                    path,
-                    os.O_RDONLY
-                    | getattr(os, "O_NOFOLLOW", 0)
-                    | getattr(os, "O_NONBLOCK", 0),
-                )
+                descriptor = fcntl.open_read_nofollow(path, nonblocking=True)
                 with os.fdopen(descriptor, "rb") as stream:
                     info = os.fstat(stream.fileno())
                     if not stat.S_ISREG(info.st_mode) or info.st_size > 65536:

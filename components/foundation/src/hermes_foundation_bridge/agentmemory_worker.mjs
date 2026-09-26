@@ -1,14 +1,12 @@
 import process from "node:process";
 
-const base = "http://127.0.0.1:3111";
-
 async function readRequest() {
   const chunks = [];
   for await (const chunk of process.stdin) chunks.push(chunk);
   return JSON.parse(Buffer.concat(chunks).toString("utf8"));
 }
 
-async function call(path, body = undefined) {
+async function call(base, path, body = undefined) {
   const response = await fetch(`${base}${path}`, {
     method: body === undefined ? "GET" : "POST",
     headers: body === undefined ? {} : { "content-type": "application/json" },
@@ -29,25 +27,30 @@ async function call(path, body = undefined) {
 
 async function main() {
   const request = await readRequest();
+  const base = request.connection?.agentmemory_url;
+  if (typeof base !== "string" || !/^http:\/\/(127\.0\.0\.1|\[::1\]):[0-9]+$/.test(base)) {
+    throw new Error("invalid_connection");
+  }
   const operation = request.operation;
   const payload = request.payload ?? {};
   if (operation === "version") {
-    return { status: "available", version: "0.9.29", engine_version: "0.11.2" };
+    const result = await call(base, "/agentmemory/health");
+    return { status: "available", version: result?.version, engine_version: "0.11.2" };
   }
   if (operation === "health") {
-    const result = await call("/agentmemory/health");
-    return { status: "healthy", result };
+    const result = await call(base, "/agentmemory/health");
+    return { status: result?.status ?? "unknown", result };
   }
   if (operation === "save") {
-    const result = await call("/agentmemory/remember", payload);
+    const result = await call(base, "/agentmemory/remember", payload);
     return { status: "saved", result };
   }
   if (operation === "search") {
-    const result = await call("/agentmemory/search", payload);
+    const result = await call(base, "/agentmemory/search", payload);
     return { status: "queried", result };
   }
   if (operation === "context") {
-    const result = await call("/agentmemory/context", payload);
+    const result = await call(base, "/agentmemory/context", payload);
     return { status: "assembled", result };
   }
   throw new Error("unsupported_operation");

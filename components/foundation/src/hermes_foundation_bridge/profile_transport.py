@@ -15,8 +15,10 @@ from typing import Any
 
 from .canonical import canonical_bytes, receipt, sha256_json
 from .config import child
+from .platform_io import is_private_file
 from .errors import fail
 from .external_operations import guarded_external
+from .platform_io import private_directory, private_file
 from .validation import boolean, digest, exact, identifier, integer, mapping, string
 
 SCHEMA_VERSION = 1
@@ -159,9 +161,10 @@ def _atomic_json(path: Path, value: object) -> None:
             "profile_contract",
             "Небезопасный путь договора.",
         )
+    private_directory(path.parent)
     descriptor, temporary_name = tempfile.mkstemp(prefix=".profile-", dir=path.parent)
     try:
-        os.fchmod(descriptor, 0o600)
+        private_file(descriptor)
         with os.fdopen(descriptor, "wb") as stream:
             stream.write(canonical_bytes(value))
             stream.flush()
@@ -330,6 +333,7 @@ class ProfileTransportService:
                 )
         if apply:
             self.database.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+            private_directory(self.database.parent)
             connection = sqlite3.connect(self.database)
             try:
                 connection.executescript(migration.read_text(encoding="utf-8"))
@@ -340,7 +344,8 @@ class ProfileTransportService:
                 connection.commit()
             finally:
                 connection.close()
-            self.database.chmod(0o600)
+            with self.database.open("rb+") as database_file:
+                private_file(database_file.fileno())
             for snapshot in snapshots:
                 path = self.contract_root / f"{snapshot['profile_id']}.json"
                 if not path.exists():
@@ -417,7 +422,7 @@ class ProfileTransportService:
             and verified == len(PROFILE_IDS)
             and blank == len(NAMED_PROFILE_IDS)
             and secret_assignments == 0
-            and (self.database.stat().st_mode & 0o777) == 0o600
+            and is_private_file(self.database)
         )
         return receipt(
             {

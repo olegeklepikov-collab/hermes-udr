@@ -14,12 +14,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from hermes_foundation_bridge.canonical import canonical_bytes
+from hermes_foundation_bridge.platform_io import private_file, private_directory, secure_file
 from hermes_foundation_bridge.dolt_sql import AUTHORITY_MANIFEST, authority_manifest
 
 
 def _write_exclusive(path: Path, content: bytes) -> None:
     descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
     try:
+        private_file(descriptor)
         written = 0
         while written < len(content):
             written += os.write(descriptor, content[written:])
@@ -113,9 +115,11 @@ def provision(
             "production_activation_allowed": False,
         }
     admin_secret_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
-    if admin_secret_dir.is_symlink() or admin_secret_dir.stat().st_mode & 0o077:
+    private_directory(admin_secret_dir)
+    if admin_secret_dir.is_symlink() or (os.name != "nt" and admin_secret_dir.stat().st_mode & 0o077):
         raise ValueError("admin secret directory permissions too broad")
     credential_dir.mkdir(parents=True, mode=0o700)
+    private_directory(credential_dir)
     writer_password = secrets.token_urlsafe(32)
     admin_password = secrets.token_urlsafe(32)
     _write_exclusive(credential, (writer_password + "\n").encode("ascii"))
@@ -139,7 +143,7 @@ def provision(
         )
     if cfg_dir.is_symlink() or not cfg_dir.is_dir():
         raise RuntimeError("Dolt configuration directory not created")
-    cfg_dir.chmod(0o700)
+    private_directory(cfg_dir)
     for name in ("privileges.db", "branch_control.db"):
         path = cfg_dir / name
         if (
@@ -148,7 +152,7 @@ def provision(
             or not stat.S_ISREG(path.stat().st_mode)
         ):
             raise RuntimeError("Dolt authority file not created")
-        path.chmod(0o600)
+        secure_file(path)
     secure_files = data_dir / "secure-file-exports"
     secure_files.mkdir(mode=0o700)
     config = data_dir / "server.yaml"

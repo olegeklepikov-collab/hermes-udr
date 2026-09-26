@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from .canonical import canonical_bytes, receipt, sha256_json
+from .platform_io import private_directory, private_file, sync_directory
 from .validation import boolean, exact, identifier, integer, mapping
 from .zvec_index import INDEX_MANIFEST, ZvecIndexer, _exclusive_bytes
 
@@ -100,16 +101,20 @@ def _source_hash(indexer: ZvecIndexer) -> str:
 
 def _publish(root: Path, value: dict[str, Any]) -> None:
     fd, name = tempfile.mkstemp(prefix=".generation-", dir=root)
-    with os.fdopen(fd, "wb") as stream:
-        stream.write(canonical_bytes(value) + b"\n")
-        stream.flush()
-        os.fsync(stream.fileno())
-    os.replace(name, root / "active-generation.json")
-    directory = os.open(root, os.O_RDONLY)
     try:
-        os.fsync(directory)
-    finally:
-        os.close(directory)
+        private_file(fd)
+        with os.fdopen(fd, "wb") as stream:
+            fd = -1
+            stream.write(canonical_bytes(value) + b"\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+    except BaseException:
+        if fd >= 0:
+            os.close(fd)
+        Path(name).unlink(missing_ok=True)
+        raise
+    os.replace(name, root / "active-generation.json")
+    sync_directory(root)
 
 
 def transition(indexer: ZvecIndexer, request: object) -> dict[str, Any]:
@@ -157,6 +162,7 @@ def transition(indexer: ZvecIndexer, request: object) -> dict[str, Any]:
         if directory.is_symlink():
             raise GenerationError("index_generation_directory_invalid")
         directory.mkdir(mode=0o700, exist_ok=True)
+        private_directory(directory)
         if data["generation_action"] == "rollback":
             if pointer is None or pointer.get("previous") != generation:
                 raise GenerationError("index_generation_not_previous")
@@ -182,6 +188,7 @@ def transition(indexer: ZvecIndexer, request: object) -> dict[str, Any]:
                 legacy_path = directory / (prior + ".json")
             target = directory / generation
             target.mkdir(mode=0o700)
+            private_directory(target)
             builder = ZvecIndexer(indexer.foundation)
             builder._generation_override = True
             builder.collection_path = target / "index"

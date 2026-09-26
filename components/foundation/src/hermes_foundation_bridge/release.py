@@ -16,6 +16,7 @@ from typing import Any
 
 from .canonical import canonical_bytes, receipt, sha256_json
 from .errors import BridgeError, fail
+from .platform_io import private_directory, private_file
 from .validation import exact, mapping, string
 
 RELEASE_NAME = "hermes-foundation-bridge"
@@ -87,9 +88,10 @@ def _write_receipt(path: Path, value: dict[str, Any]) -> None:
             "release.receipt",
             "Небезопасный путь квитанции.",
         )
+    private_directory(path.parent)
     descriptor, temporary_name = tempfile.mkstemp(prefix=".release-", dir=path.parent)
     try:
-        os.fchmod(descriptor, 0o600)
+        private_file(descriptor)
         with os.fdopen(descriptor, "wb") as stream:
             stream.write(canonical_bytes(value))
             stream.flush()

@@ -11,6 +11,7 @@ from typing import Any
 
 from .canonical import canonical_bytes, receipt
 from .config import child
+from .platform_io import private_directory, secure_file, is_private_file
 from .errors import BridgeError, fail
 from .validation import boolean, digest, exact, identifier, integer, mapping, string
 
@@ -93,6 +94,7 @@ class ObservabilityService:
             )
         if apply:
             self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
+            private_directory(self.root)
             connection = sqlite3.connect(self.database)
             try:
                 connection.executescript(migration.read_text(encoding="utf-8"))
@@ -103,7 +105,7 @@ class ObservabilityService:
                 connection.commit()
             finally:
                 connection.close()
-            self.database.chmod(0o600)
+            secure_file(self.database)
         return receipt(
             {
                 "schema_version": 1,
@@ -476,7 +478,7 @@ class ObservabilityService:
         healthy = (
             version == SCHEMA_VERSION
             and queue_ready
-            and (self.database.stat().st_mode & 0o777) == 0o600
+            and is_private_file(self.database)
         )
         return receipt(
             {

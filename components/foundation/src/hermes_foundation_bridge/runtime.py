@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import uuid
 from datetime import UTC, datetime, timedelta
@@ -11,6 +12,7 @@ from typing import Any
 
 from .canonical import receipt, sha256_json
 from .config import child
+from .platform_io import private_directory, secure_file, is_private_file
 from .errors import fail
 from .validation import digest, exact, identifier, integer, mapping
 
@@ -52,6 +54,7 @@ class RuntimeCoordinator:
         mode: int | None = None
         if apply:
             self.database.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+            private_directory(self.database.parent)
             connection = sqlite3.connect(self.database)
             try:
                 connection.executescript(sql)
@@ -66,13 +69,10 @@ class RuntimeCoordinator:
                 ).fetchone()[0]
             finally:
                 connection.close()
-            mode = self.database.stat().st_mode & 0o777
-            if mode & 0o077:
-                self.database.chmod(0o600)
-                mode = self.database.stat().st_mode & 0o777
-            verified = (
-                journal.lower() == "wal" and version == SCHEMA_VERSION and mode == 0o600
-            )
+            secure_file(self.database)
+            mode = self.database.stat().st_mode & 0o777 if os.name != "nt" else None
+            verified = journal.lower() == "wal" and version == SCHEMA_VERSION and is_private_file(self.database)
+
         else:
             journal = None
             version = None
@@ -92,7 +92,7 @@ class RuntimeCoordinator:
                 "apply_requested": apply,
                 "journal_mode": journal,
                 "installed_schema_version": version,
-                "permission_mode": f"{mode:04o}" if mode is not None else None,
+                "permission_mode": f"{mode:04o}" if mode is not None else ("owner_dacl" if apply and verified else None),
                 "readback_verified": verified,
             }
         )

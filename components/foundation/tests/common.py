@@ -1,6 +1,28 @@
 from __future__ import annotations
 
 import hashlib
+import json
+import sys
+from pathlib import Path
+
+
+def native_runtime_fixture(root: Path, *, node_path: str | None = None, python_path: str | None = None) -> dict:
+    from hermes_foundation_bridge.platform_io import private_directory, secure_file
+    root.mkdir(parents=True, exist_ok=True)
+    private_directory(root)
+    secret = root / "neo4j-password"
+    secret.write_text("test-only-password", encoding="utf-8")
+    secure_file(secret)
+    config = {
+        "schema_version": 1, "mode": "native",
+        "node_path": node_path or sys.executable, "python_path": python_path or sys.executable,
+        "agentmemory_url": "http://127.0.0.1:3111", "neo4j_uri": "bolt://127.0.0.1:7687",
+        "neo4j_user": "neo4j", "neo4j_password_file": str(secret),
+    }
+    path = root / "native-runtime.json"
+    path.write_text(json.dumps(config), encoding="utf-8")
+    secure_file(path)
+    return config
 
 
 def fragment_request(text: str = "verified fragment") -> dict:

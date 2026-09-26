@@ -254,8 +254,7 @@ def export_handoff(args: dict) -> dict:
         for candidate in ((temporary,) if temporary_created else ()) + ((final,) if published else ()):
             if candidate.exists():
                 for path in candidate.rglob("*"):
-                    if path.is_dir():
-                        path.chmod(0o700)
+                    path.chmod(0o700 if path.is_dir() else 0o600)
                 candidate.chmod(0o700)
                 shutil.rmtree(candidate)
         raise

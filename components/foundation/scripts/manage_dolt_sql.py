@@ -5,16 +5,18 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import signal
 import socket
 import subprocess
 import sys
 import time
+import psutil
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from hermes_foundation_bridge.dolt_sql import DoltSQLAdapter, authority_manifest
+from hermes_foundation_bridge.platform_io import private_file, private_directory
+from hermes_foundation_bridge.native_runtime import assert_private_file
 
 _CHILDREN: dict[int, subprocess.Popen[bytes]] = {}
 
@@ -39,8 +41,7 @@ def _paths(foundation: Path) -> tuple[Path, Path, Path]:
 def _pid(pidfile: Path, config: Path) -> int | None:
     if not pidfile.exists():
         return None
-    if pidfile.is_symlink() or not pidfile.is_file() or pidfile.stat().st_mode & 0o077:
-        raise RuntimeError("Dolt pidfile invalid")
+    assert_private_file(pidfile)
     try:
         pid = int(pidfile.read_text(encoding="ascii").strip())
     except (OSError, UnicodeError, ValueError) as error:
@@ -48,17 +49,13 @@ def _pid(pidfile: Path, config: Path) -> int | None:
     if pid < 2:
         raise RuntimeError("Dolt pid invalid")
     try:
-        os.kill(pid, 0)
-    except ProcessLookupError:
+        process = psutil.Process(pid)
+        command = process.cmdline()
+        if process.status() == psutil.STATUS_ZOMBIE:
+            return None
+    except psutil.NoSuchProcess:
         return None
-    command = subprocess.run(
-        ["ps", "-p", str(pid), "-o", "command="],
-        check=False,
-        capture_output=True,
-        text=True,
-        timeout=5,
-    ).stdout
-    if "dolt sql-server" not in command or str(config) not in command:
+    if not command or Path(command[0]).name.lower() not in {"dolt", "dolt.exe"} or "sql-server" not in command or str(config) not in command:
         raise RuntimeError("pid belongs to another process")
     return pid
 
@@ -90,11 +87,12 @@ def manage(foundation: Path, operation: str) -> dict[str, object]:
             raise RuntimeError("Dolt server configuration absent")
         DoltSQLAdapter(foundation)._configuration()
         logfile.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+        private_directory(logfile.parent)
         if logfile.parent.is_symlink() or logfile.is_symlink():
             raise RuntimeError("Dolt log path invalid")
         descriptor = os.open(logfile, os.O_CREAT | os.O_APPEND | os.O_WRONLY, 0o600)
         try:
-            os.fchmod(descriptor, 0o600)
+            private_file(descriptor)
             process = subprocess.Popen(
                 ["dolt", "sql-server", "--config", str(config)],
                 stdin=subprocess.DEVNULL,
@@ -117,7 +115,7 @@ def manage(foundation: Path, operation: str) -> dict[str, object]:
             raise RuntimeError("Dolt SQL server startup timed out")
         descriptor = os.open(pidfile, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
         try:
-            os.fchmod(descriptor, 0o600)
+            private_file(descriptor)
             os.write(descriptor, f"{process.pid}\n".encode("ascii"))
             os.fsync(descriptor)
         finally:
@@ -133,20 +131,13 @@ def manage(foundation: Path, operation: str) -> dict[str, object]:
     if operation == "stop":
         if current is None:
             return manage(foundation, "status")
-        os.kill(current, signal.SIGTERM)
-        for _attempt in range(100):
-            status = subprocess.run(
-                ["ps", "-p", str(current), "-o", "stat="],
-                check=False,
-                capture_output=True,
-                text=True,
-                timeout=5,
-            ).stdout.strip()
-            if not status or status.startswith("Z"):
-                break
-            time.sleep(0.1)
-        else:
-            raise RuntimeError("Dolt SQL server did not stop")
+        # Process identity was checked above; never use os.kill(pid, 0) on Windows.
+        process = psutil.Process(current)
+        process.terminate()
+        try:
+            process.wait(timeout=10)
+        except psutil.TimeoutExpired as error:
+            raise RuntimeError("Dolt SQL server did not stop") from error
         child = _CHILDREN.pop(current, None)
         if child is not None:
             child.wait(timeout=10)

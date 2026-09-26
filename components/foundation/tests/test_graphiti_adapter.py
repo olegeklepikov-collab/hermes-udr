@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 from hermes_foundation_bridge.graphiti_adapter import GraphitiAdapter
+from tests.common import native_runtime_fixture
 
 
 class FakeGraphitiAdapter(GraphitiAdapter):
@@ -19,8 +20,7 @@ class FakeGraphitiAdapter(GraphitiAdapter):
             return {
                 "status": "healthy" if operation == "health" else "available",
                 "graphiti_version": "0.30.2",
-                "falkordb_client_version": "1.7.1",
-                "falkordblite_version": "0.10.0",
+                "neo4j_version": "5.26.31",
             }
         if operation == "migrate":
             return {"status": "applied"}
@@ -59,6 +59,7 @@ class GraphitiAdapterTests(unittest.TestCase):
     def setUp(self) -> None:
         self.directory = tempfile.TemporaryDirectory()
         self.adapter = FakeGraphitiAdapter(Path(self.directory.name) / "foundation")
+        native_runtime_fixture(self.adapter.foundation)
         self.adapter.migrate({"schema_version": 1, "apply": True})
 
     def tearDown(self) -> None:

@@ -9,7 +9,7 @@ description = "Greenfield public bridge for Hermes Knowledge Work foundation"
 readme = "README.md"
 license = "Apache-2.0"
 requires-python = ">=3.11"
-dependencies = ["hermes-research-report==0.44.0b1", "zvec==0.7.0", "PyMySQL==1.1.2"]
+dependencies = ["hermes-research-report==0.44.0b1", "zvec==0.7.0", "PyMySQL==1.1.2", "psutil==7.2.2"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}

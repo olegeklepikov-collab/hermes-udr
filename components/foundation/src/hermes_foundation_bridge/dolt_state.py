@@ -11,6 +11,7 @@ from typing import Any
 
 from .canonical import canonical_bytes, receipt, sha256_json
 from .config import child
+from .platform_io import private_directory
 from .errors import BridgeError, fail
 from .validation import digest, exact, identifier, integer, mapping
 
@@ -65,11 +66,11 @@ class DoltStateAdapter:
         applied: list[str] = []
         if apply:
             self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
-            self.root.chmod(0o700)
+            private_directory(self.root)
             for name in sorted(DATABASES):
                 database_root = self._database_root(name)
                 database_root.mkdir(mode=0o700, exist_ok=True)
-                database_root.chmod(0o700)
+                private_directory(database_root)
                 if not child(database_root, ".dolt").is_dir():
                     self._run(
                         database_root,

@@ -11,6 +11,7 @@ import unittest
 from pathlib import Path
 
 from scripts.provision_dolt_sql import provision
+from tests.common import native_runtime_fixture
 from tests import test_dolt_sql as dolt_fixtures
 
 OBSERVATIONS = []
@@ -30,9 +31,8 @@ print(json.dumps(result))
 GRAPH_PROVIDER = r"""
 import json,os,sqlite3,sys,time
 from pathlib import Path
-assert 'hermes-foundation-graphiti' in sys.argv and 'exec' in sys.argv
 root=Path(os.environ['STAGE4_GRAPH_PROVIDER']);request=json.load(sys.stdin);op=request['operation'];p=request['payload']
-if op=='health':out={'status':'healthy','graphiti_version':'0.30.2','falkordb_client_version':'1.7.1'}
+if op=='health':out={'status':'healthy','graphiti_version':'0.30.2','neo4j_version':'5.26.31'}
 elif op=='migrate':out={'status':'applied'}
 else:
  with sqlite3.connect(root/'provider.sqlite3') as db:
@@ -89,8 +89,6 @@ class StageFourProcessFaultTests(unittest.TestCase):
             ):
                 base = Path(temp)
                 root = base / "foundation"
-                (root / "docker").mkdir(parents=True)
-                (root / "docker/config.json").write_text("{}")
                 (base / "mode").write_text("normal")
                 with sqlite3.connect(base / "provider.sqlite3") as db:
                     db.execute(
@@ -99,9 +97,10 @@ class StageFourProcessFaultTests(unittest.TestCase):
                     db.execute("CREATE TABLE effects(operation TEXT)")
                 binaries = base / "bin"
                 binaries.mkdir()
-                shim = binaries / "docker"
+                shim = binaries / "graph-python"
                 shim.write_text("#!/usr/bin/env python3\n" + GRAPH_PROVIDER)
                 shim.chmod(0o700)
+                native_runtime_fixture(root, python_path=str(shim))
                 env = {
                     **os.environ,
                     "PATH": str(binaries) + os.pathsep + os.environ["PATH"],
@@ -187,8 +186,6 @@ class StageFourProcessFaultTests(unittest.TestCase):
             ):
                 base = Path(temp)
                 root = base / "foundation"
-                (root / "docker").mkdir(parents=True)
-                (root / "docker/config.json").write_text("{}")
                 (base / "mode").write_text("normal")
                 with sqlite3.connect(base / "provider.sqlite3") as db:
                     db.execute(
@@ -197,9 +194,10 @@ class StageFourProcessFaultTests(unittest.TestCase):
                     db.execute("CREATE TABLE effects(operation TEXT)")
                 binaries = base / "bin"
                 binaries.mkdir()
-                shim = binaries / "docker"
+                shim = binaries / "graph-python"
                 shim.write_text("#!/usr/bin/env python3\n" + GRAPH_PROVIDER)
                 shim.chmod(0o700)
+                native_runtime_fixture(root, python_path=str(shim))
                 env = {
                     **os.environ,
                     "PATH": str(binaries) + os.pathsep + os.environ["PATH"],
@@ -244,7 +242,7 @@ class StageFourProcessFaultTests(unittest.TestCase):
                         "provider_effect_count": effects,
                         "fact_count": len(rows),
                         "active": rows[0][0],
-                        "provider": "owned_SQLite_process_stub_not_live_FalkorDB",
+                        "provider": "owned_SQLite_process_stub_not_live_Neo4j",
                     }
                 )
 

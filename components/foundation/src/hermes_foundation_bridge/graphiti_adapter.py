@@ -1,14 +1,11 @@
-"""Typed bridge-only Graphiti adapter using an isolated exact-version worker."""
+"""Typed bridge-only Graphiti adapter using a local Neo4j worker."""
 
 from __future__ import annotations
 
-import fcntl
 import hashlib
 import json
 import os
 import re
-import shutil
-import subprocess
 import time
 from contextlib import contextmanager
 from pathlib import Path
@@ -18,7 +15,8 @@ from .canonical import canonical_bytes, receipt, sha256_json
 from .config import child
 from .errors import BridgeError, fail
 from .external_operations import guarded_external
-from .instance_endpoints import instance_endpoints
+from . import platform_io as fcntl
+from .native_runtime import invoke_worker, load_native_runtime
 from .runtime import RuntimeCoordinator
 from .validation import boolean, digest, exact, identifier, integer, mapping, string
 
@@ -26,14 +24,9 @@ GRAPH_MANIFEST = {
     "schema_version": 1,
     "graph_id": "hermes_foundation",
     "graphiti_core_version": "0.30.2",
-    "graphiti_base_image_digest": "sha256:21818c8a8e3b0513fe167370527fec32ed117e98bcc3423f9eb3bc6c73af7d43",
-    "graphiti_runtime_image": "hermes-foundation-graphiti:0.30.2-falkor1",
-    "falkordb_version": "4.20.4",
-    "falkordb_image_digest": "sha256:adbddd418916c25618564ff8597a919b08bc76452ebeb74eb985c38d7281df62",
-    "falkordb_client_version": "1.7.1",
-    "network": "hermes-foundation-net",
-    "falkordb_container": "hermes-foundation-falkordb",
-    "graphiti_container": "hermes-foundation-graphiti",
+    "runtime_kind": "native",
+    "graph_backend": "neo4j",
+    "neo4j_version": "5.26.31",
     "published_ports": [],
     "write_authority": "hermes-foundation-bridge",
     "raw_query_exposed": False,
@@ -46,14 +39,7 @@ ARTIFACT_LOCK_TIMEOUT_SECONDS = 1.0
 
 
 def graph_manifest(root: Path) -> dict[str, Any]:
-    endpoints = instance_endpoints(root)
-    manifest = dict(GRAPH_MANIFEST)
-    manifest.update(
-        network=endpoints["network"],
-        falkordb_container=endpoints["falkordb_container"],
-        graphiti_container=endpoints["graphiti_container"],
-    )
-    return manifest
+    return dict(GRAPH_MANIFEST)
 
 
 def _circuit_int(value: object) -> int:
@@ -72,7 +58,6 @@ class GraphitiAdapter:
         self.expected_manifest = graph_manifest(root)
         self.root = child(root, "graphiti")
         self.manifest_path = child(self.root, "graph-manifest.json")
-        self.docker_config = child(root, "docker")
         self.circuit_path = child(self.root, "circuit.json")
         self.circuit_lock = child(self.root, ".circuit.lock")
 
@@ -132,11 +117,7 @@ class GraphitiAdapter:
         finally:
             os.close(descriptor)
         os.replace(temporary, self.circuit_path)
-        directory = os.open(self.root, os.O_RDONLY)
-        try:
-            os.fsync(directory)
-        finally:
-            os.close(directory)
+        fcntl.sync_directory(self.root)
 
     def _record_failure(self) -> dict[str, object]:
         with self._circuit_guard():
@@ -170,80 +151,25 @@ class GraphitiAdapter:
     def _invoke(
         self, operation: str, payload: dict[str, object] | None = None
     ) -> dict[str, Any]:
-        if graph_manifest(self.foundation) != self.expected_manifest:
-            fail(
-                "instance_endpoints_changed",
-                "instance_endpoints",
-                "Адреса экземпляра изменились.",
-            )
         if operation != "health" and self._circuit_state().get("state") == "open":
             raise BridgeError(
                 "graphiti_circuit_open",
                 "runtime.graphiti.circuit",
                 "Graphiti circuit открыт.",
             )
-        executable = shutil.which("docker")
-        if not executable or not child(self.docker_config, "config.json").is_file():
-            fail(
-                "graphiti_runtime_unavailable",
-                "runtime.graphiti",
-                "Graphiti runtime недоступен.",
-            )
+        config = load_native_runtime(self.foundation)
         try:
-            completed = subprocess.run(
-                [
-                    executable,
-                    "--config",
-                    str(self.docker_config),
-                    "exec",
-                    "--interactive",
-                    self.expected_manifest["graphiti_container"],
-                    "/app/.venv/bin/python",
-                    "/opt/hermes-foundation/graphiti_worker.py",
-                ],
-                input=json.dumps({"operation": operation, "payload": payload or {}}),
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=30,
+            result = invoke_worker(
+                str(config["python_path"]), Path(__file__).with_name("graphiti_worker.py"),
+                {"connection": {"neo4j_uri": config["neo4j_uri"], "neo4j_user": config["neo4j_user"],
+                                "neo4j_password_file": config["neo4j_password_file"]},
+                 "operation": operation, "payload": payload or {}},
+                failure_code="graphiti_operation_failed", response_code="graphiti_response_invalid",
+                error_path="runtime.graphiti",
             )
-        except (OSError, subprocess.SubprocessError) as error:
+        except BridgeError:
             self._record_failure()
-            raise BridgeError(
-                "graphiti_operation_failed",
-                "runtime.graphiti",
-                "Операция Graphiti отклонена.",
-            ) from error
-        if completed.returncode != 0:
-            self._record_failure()
-            raise BridgeError(
-                "graphiti_operation_failed",
-                "runtime.graphiti",
-                "Операция Graphiti отклонена.",
-            )
-        try:
-            result = json.loads(completed.stdout)
-        except json.JSONDecodeError as error:
-            self._record_failure()
-            raise BridgeError(
-                "graphiti_response_invalid",
-                "runtime.graphiti",
-                "Ответ Graphiti поврежден.",
-            ) from error
-        if not isinstance(result, dict):
-            self._record_failure()
-            raise BridgeError(
-                "graphiti_response_invalid",
-                "runtime.graphiti",
-                "Ответ Graphiti поврежден.",
-            )
-        if result.get("status") == "error":
-            self._record_failure()
-            raise BridgeError(
-                "graphiti_operation_failed",
-                "runtime.graphiti",
-                "Операция Graphiti отклонена.",
-            )
+            raise
         self._record_success()
         return result
 
@@ -260,7 +186,7 @@ class GraphitiAdapter:
         health = self._invoke("health")
         if (
             health.get("graphiti_version") != "0.30.2"
-            or health.get("falkordb_client_version") != "1.7.1"
+            or health.get("neo4j_version") != "5.26.31"
         ):
             fail(
                 "graphiti_version_mismatch",
@@ -308,12 +234,7 @@ class GraphitiAdapter:
         )
 
     def _ready(self) -> None:
-        if graph_manifest(self.foundation) != self.expected_manifest:
-            fail(
-                "instance_endpoints_changed",
-                "instance_endpoints",
-                "Адреса экземпляра изменились.",
-            )
+        load_native_runtime(self.foundation)
         if not self.manifest_path.is_file() or self.manifest_path.is_symlink():
             fail("graphiti_unavailable", "runtime.graphiti", "Graphiti не подготовлен.")
         if (
@@ -371,7 +292,7 @@ class GraphitiAdapter:
                 "status": result["status"],
                 "manifest_hash": sha256_json(self.expected_manifest),
                 "graphiti_version": result["graphiti_version"],
-                "falkordb_client_version": result["falkordb_client_version"],
+                "neo4j_version": result["neo4j_version"],
                 "raw_query_exposed": False,
                 "admin_operations_exposed": False,
                 "circuit_state": circuit["state"],

@@ -1,4 +1,4 @@
-"""Typed, scope-bound adapter for an isolated AgentMemory container."""
+"""Typed, scope-bound adapter for a host-owned AgentMemory service."""
 
 from __future__ import annotations
 
@@ -6,16 +6,14 @@ import hashlib
 import json
 import os
 import re
-import shutil
-import subprocess
 from pathlib import Path
 from typing import Any
 
 from .canonical import canonical_bytes, receipt, sha256_json
 from .config import child
-from .errors import BridgeError, fail
+from .errors import fail
 from .external_operations import guarded_external
-from .instance_endpoints import instance_endpoints
+from .native_runtime import invoke_worker, load_native_runtime
 from .validation import boolean, exact, identifier, integer, mapping, string
 
 MEMORY_MANIFEST = {
@@ -24,11 +22,8 @@ MEMORY_MANIFEST = {
     "npm_shasum": "800309cb9e83ee5efc10739f8b481d79fa5544df",
     "npm_integrity": "sha512-NGHEi563Ap6MDan19slUH47qrTHRRyLCsuEsa1tRZ0y3e4urJnxedLJR9/agp47P1nw6LiCEvNRvK4LfUWj9Gg==",
     "iii_engine_version": "0.11.2",
-    "node_base_digest": "sha256:5711a0d445a1af54af9589066c646df387d1831a608226f4cd694fc59e745059",
-    "runtime_image": "hermes-foundation-agentmemory:0.9.29-bridge2",
-    "runtime_image_id": "sha256:9a780b4f76d3d7ea507ff3581b9a8a08885e2d9037aec52e58daa5479043079e",
-    "network": "hermes-foundation-net",
-    "container": "hermes-foundation-agentmemory",
+    "runtime_kind": "native",
+    "transport": "loopback_http",
     "published_ports": [],
     "agent_scope_mode": "isolated",
     "embedding_mode": "keyless_default",
@@ -40,12 +35,7 @@ _SCOPE_KEYS = {"tenant_id", "project_id", "profile_id", "work_kind"}
 
 
 def memory_manifest(root: Path) -> dict[str, Any]:
-    endpoints = instance_endpoints(root)
-    manifest = dict(MEMORY_MANIFEST)
-    manifest.update(
-        network=endpoints["network"], container=endpoints["agentmemory_container"]
-    )
-    return manifest
+    return dict(MEMORY_MANIFEST)
 
 
 class AgentMemoryAdapter:
@@ -55,75 +45,17 @@ class AgentMemoryAdapter:
         self.root = child(root, "agentmemory")
         self.manifest_path = child(self.root, "memory-manifest.json")
         self.default_scope_path = child(self.root, "default-scope.json")
-        self.docker_config = child(root, "docker")
 
     def _invoke(
         self, operation: str, payload: dict[str, object] | None = None
     ) -> dict[str, Any]:
-        if memory_manifest(self.foundation) != self.expected_manifest:
-            fail(
-                "instance_endpoints_changed",
-                "instance_endpoints",
-                "Адреса экземпляра изменились.",
-            )
-        executable = shutil.which("docker")
-        if not executable or not child(self.docker_config, "config.json").is_file():
-            fail(
-                "agentmemory_runtime_unavailable",
-                "runtime.agentmemory",
-                "AgentMemory runtime недоступен.",
-            )
-        try:
-            completed = subprocess.run(
-                [
-                    executable,
-                    "--config",
-                    str(self.docker_config),
-                    "exec",
-                    "--interactive",
-                    self.expected_manifest["container"],
-                    "node",
-                    "/opt/hermes-foundation/agentmemory_worker.mjs",
-                ],
-                input=json.dumps({"operation": operation, "payload": payload or {}}),
-                capture_output=True,
-                text=True,
-                check=False,
-                timeout=30,
-            )
-        except (OSError, subprocess.SubprocessError) as error:
-            raise BridgeError(
-                "agentmemory_operation_failed",
-                "runtime.agentmemory",
-                "Операция AgentMemory отклонена.",
-            ) from error
-        if completed.returncode != 0:
-            raise BridgeError(
-                "agentmemory_operation_failed",
-                "runtime.agentmemory",
-                "Операция AgentMemory отклонена.",
-            )
-        try:
-            result = json.loads(completed.stdout)
-        except json.JSONDecodeError as error:
-            raise BridgeError(
-                "agentmemory_response_invalid",
-                "runtime.agentmemory",
-                "Ответ AgentMemory поврежден.",
-            ) from error
-        if not isinstance(result, dict):
-            raise BridgeError(
-                "agentmemory_response_invalid",
-                "runtime.agentmemory",
-                "Ответ AgentMemory поврежден.",
-            )
-        if result.get("status") == "error":
-            raise BridgeError(
-                "agentmemory_operation_failed",
-                "runtime.agentmemory",
-                "Операция AgentMemory отклонена.",
-            )
-        return result
+        config = load_native_runtime(self.foundation)
+        return invoke_worker(
+            str(config["node_path"]), Path(__file__).with_name("agentmemory_worker.mjs"),
+            {"connection": {"agentmemory_url": config["agentmemory_url"]}, "operation": operation, "payload": payload or {}},
+            failure_code="agentmemory_operation_failed", response_code="agentmemory_response_invalid",
+            error_path="runtime.agentmemory",
+        )
 
     @staticmethod
     def _scope(value: object, path: str = "request.scope") -> dict[str, str]:
@@ -202,12 +134,7 @@ class AgentMemoryAdapter:
         )
 
     def _ready(self) -> None:
-        if memory_manifest(self.foundation) != self.expected_manifest:
-            fail(
-                "instance_endpoints_changed",
-                "instance_endpoints",
-                "Адреса экземпляра изменились.",
-            )
+        load_native_runtime(self.foundation)
         if not self.manifest_path.is_file() or self.manifest_path.is_symlink():
             fail(
                 "agentmemory_unavailable",

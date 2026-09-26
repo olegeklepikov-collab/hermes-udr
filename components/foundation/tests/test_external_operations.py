@@ -14,6 +14,7 @@ from hermes_foundation_bridge.canonical import receipt
 from hermes_foundation_bridge.errors import BridgeError
 from hermes_foundation_bridge.external_operations import guarded_external
 from hermes_foundation_bridge.runtime import RuntimeCoordinator
+from tests.common import native_runtime_fixture
 from tests.test_agentmemory_adapter import FakeAgentMemoryAdapter
 from tests.test_graphiti_adapter import FakeGraphitiAdapter
 
@@ -43,6 +44,7 @@ class ExternalOperationTests(unittest.TestCase):
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.root = Path(self.directory.name)
+        native_runtime_fixture(self.root)
         RuntimeCoordinator(self.root).migration_receipt(apply=True)
 
     def tearDown(self):

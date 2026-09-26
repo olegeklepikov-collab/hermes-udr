@@ -6,6 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from hermes_foundation_bridge.agentmemory_adapter import AgentMemoryAdapter
+from tests.common import native_runtime_fixture
 
 
 class FakeAgentMemoryAdapter(AgentMemoryAdapter):
@@ -60,6 +61,7 @@ class AgentMemoryAdapterTests(unittest.TestCase):
     def setUp(self) -> None:
         self.directory = tempfile.TemporaryDirectory()
         self.adapter = FakeAgentMemoryAdapter(Path(self.directory.name) / "foundation")
+        native_runtime_fixture(self.adapter.foundation)
         self.adapter.migrate({"schema_version": 1, "apply": True})
         self.scope = {
             "tenant_id": "TENANT-1",

@@ -1,0 +1,37 @@
+name: Native platform checks
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: python -m pip install pdfplumber==0.11.9 psutil==7.2.2 PyMySQL==1.1.2 zvec==0.7.0
+      - name: Research core
+        shell: python
+        run: |
+          import os, subprocess, sys, pathlib
+          root=pathlib.Path.cwd()
+          env=os.environ.copy()
+          env['PYTHONPATH']=os.pathsep.join(map(str,[root/'src',root]))
+          modules=['test_research_workspace','test_research_modes','test_research_methodology','test_research_journal','test_research_capabilities','test_research_handoff','test_research_fetch','test_run_research','test_native_audit']
+          subprocess.run([sys.executable,'-B','-m','unittest',*['tests.'+m for m in modules]],env=env,check=True)
+      - name: Foundation native contracts
+        shell: python
+        run: |
+          import os, subprocess, pathlib
+          root=pathlib.Path.cwd()
+          env=os.environ.copy()
+          env['PYTHONPATH']=os.pathsep.join(map(str,[root/'components/foundation/src',root/'src']))
+          subprocess.run(['python','-B','-m','unittest','discover','-s','tests'],cwd=root/'components/foundation',env=env,check=True)

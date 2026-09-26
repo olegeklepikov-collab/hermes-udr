@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import fcntl
 import hashlib
 import json
 import os
@@ -16,6 +15,7 @@ from typing import Any
 from .canonical import canonical_bytes, receipt, sha256_json
 from .config import child
 from .errors import BridgeError, fail
+from . import platform_io as fcntl
 from .validation import (
     ID_RE,
     boolean,
@@ -55,19 +55,16 @@ _MAX_ORIGINAL_BYTES = 64 * 1024 * 1024
 
 def _exclusive_bytes(path: Path, payload: bytes) -> None:
     """Publish one immutable ledger file before derived-index effects."""
-    descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
+    descriptor = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY | fcntl.BINARY_FLAG, 0o600)
     try:
+        fcntl.private_file(descriptor)
         written = 0
         while written < len(payload):
             written += os.write(descriptor, payload[written:])
         os.fsync(descriptor)
     finally:
         os.close(descriptor)
-    directory = os.open(path.parent, os.O_RDONLY)
-    try:
-        os.fsync(directory)
-    finally:
-        os.close(directory)
+    fcntl.sync_directory(path.parent)
 
 
 def _zvec() -> Any:
@@ -134,7 +131,7 @@ class ZvecIndexer:
             )
         computed = hashlib.sha256()
         try:
-            descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+            descriptor = fcntl.open_read_nofollow(path)
         except OSError as error:
             raise BridgeError(
                 "original_unavailable",
@@ -283,15 +280,25 @@ class ZvecIndexer:
 
     @contextmanager
     def _writer(self) -> Iterator[None]:
+        if self.root.is_symlink():
+            fail("index_root_invalid", "zvec", "Ссылка вместо каталога запрещена.")
         self.root.mkdir(parents=True, exist_ok=True, mode=0o700)
-        descriptor = os.open(self.lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+        fcntl.private_directory(self.root)
+        if self.lock_path.is_symlink():
+            fail("index_lock_invalid", "zvec", "Ссылка вместо блокировки запрещена.")
+        descriptor = os.open(self.lock_path, os.O_CREAT | os.O_RDWR | fcntl.BINARY_FLAG, 0o600)
+        locked = False
         try:
             fcntl.flock(descriptor, fcntl.LOCK_EX)
+            locked = True
             self._refresh_generation()
             yield
         finally:
-            fcntl.flock(descriptor, fcntl.LOCK_UN)
-            os.close(descriptor)
+            try:
+                if locked:
+                    fcntl.flock(descriptor, fcntl.LOCK_UN)
+            finally:
+                os.close(descriptor)
 
     def migrate(self, *, apply: bool, _already_locked: bool = False) -> dict[str, Any]:
         zvec = _zvec()
@@ -319,10 +326,11 @@ class ZvecIndexer:
                 payload = canonical_bytes(INDEX_MANIFEST) + b"\n"
                 descriptor = os.open(
                     self.manifest_path,
-                    os.O_CREAT | os.O_EXCL | os.O_WRONLY,
+                    os.O_CREAT | os.O_EXCL | os.O_WRONLY | fcntl.BINARY_FLAG,
                     0o600,
                 )
                 try:
+                    fcntl.private_file(descriptor)
                     os.write(descriptor, payload)
                     os.fsync(descriptor)
                 finally:
@@ -359,6 +367,7 @@ class ZvecIndexer:
                     "Небезопасный каталог источников.",
                 )
             self.source_root.mkdir(parents=True, exist_ok=True, mode=0o700)
+            fcntl.private_directory(self.source_root)
         return receipt(
             {
                 "schema_version": 1,
