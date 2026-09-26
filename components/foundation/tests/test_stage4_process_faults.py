@@ -1,7 +1,9 @@
 """Real process boundaries for Graphiti transport and isolated Dolt SQL commits."""
 
+import importlib.util
 import json
 import os
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -12,7 +14,6 @@ from pathlib import Path
 
 from scripts.provision_dolt_sql import provision
 from tests.common import native_runtime_fixture
-from tests import test_dolt_sql as dolt_fixtures
 
 OBSERVATIONS = []
 GRAPH_CLIENT = r"""
@@ -81,6 +82,22 @@ print(json.dumps({'write':result,'read':read,'matching_commit_count':commits}))
 
 
 class StageFourProcessFaultTests(unittest.TestCase):
+    @staticmethod
+    def graph_provider_shim(binaries: Path) -> Path:
+        if os.name == "nt":
+            provider = binaries / "graph_provider.py"
+            provider.write_text(GRAPH_PROVIDER, encoding="utf-8")
+            shim = binaries / "graph-python.cmd"
+            shim.write_text(
+                f'@echo off\r\n"{sys.executable}" -B "{provider}"\r\n',
+                encoding="utf-8",
+            )
+        else:
+            shim = binaries / "graph-python"
+            shim.write_text("#!/usr/bin/env python3\n" + GRAPH_PROVIDER, encoding="utf-8")
+            shim.chmod(0o700)
+        return shim
+
     def test_put_tombstone_races_are_bounded_and_independent_artifacts_progress(self):
         for first_action in ("put", "tombstone"):
             with (
@@ -97,9 +114,7 @@ class StageFourProcessFaultTests(unittest.TestCase):
                     db.execute("CREATE TABLE effects(operation TEXT)")
                 binaries = base / "bin"
                 binaries.mkdir()
-                shim = binaries / "graph-python"
-                shim.write_text("#!/usr/bin/env python3\n" + GRAPH_PROVIDER)
-                shim.chmod(0o700)
+                shim = self.graph_provider_shim(binaries)
                 native_runtime_fixture(root, python_path=str(shim))
                 env = {
                     **os.environ,
@@ -194,9 +209,7 @@ class StageFourProcessFaultTests(unittest.TestCase):
                     db.execute("CREATE TABLE effects(operation TEXT)")
                 binaries = base / "bin"
                 binaries.mkdir()
-                shim = binaries / "graph-python"
-                shim.write_text("#!/usr/bin/env python3\n" + GRAPH_PROVIDER)
-                shim.chmod(0o700)
+                shim = self.graph_provider_shim(binaries)
                 native_runtime_fixture(root, python_path=str(shim))
                 env = {
                     **os.environ,
@@ -246,7 +259,14 @@ class StageFourProcessFaultTests(unittest.TestCase):
                     }
                 )
 
+    @unittest.skipUnless(
+        shutil.which("dolt") and importlib.util.find_spec("pymysql")
+        and importlib.util.find_spec("psutil"),
+        "Dolt, PyMySQL, and psutil are required",
+    )
     def test_real_dolt_sql_process_crash_before_and_after_commit(self):
+        from tests import test_dolt_sql as dolt_fixtures
+
         fixture = dolt_fixtures.DoltSQLAdapterTests()
         fixture.setUp()
         try:

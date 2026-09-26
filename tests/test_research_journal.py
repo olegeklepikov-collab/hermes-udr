@@ -30,12 +30,12 @@ class ResearchJournalTests(unittest.TestCase):
             result = record({"run_id": started["run_id"], "event": event})
             self.assertEqual(result["seq"], 1)
             self.assertFalse(result["verified_saturation"])
-            narrative = json.loads(Path(result["narrative_json"]).read_text())
+            narrative = json.loads(Path(result["narrative_json"]).read_text(encoding="utf-8"))
             saved = narrative["events"][0]
             self.assertEqual(saved["event"], event)
             self.assertEqual(saved["declared_stop_reason"], "budget")
             self.assertFalse(saved["verified_saturation"])
-            self.assertIn("No primary document", Path(result["narrative_md"]).read_text())
+            self.assertIn("No primary document", Path(result["narrative_md"]).read_text(encoding="utf-8"))
 
     def test_same_bytes_at_new_path_do_not_advance_loop_but_new_content_does(self):
         with tempfile.TemporaryDirectory() as directory, patch.dict(os.environ, {"HERMES_HOME": directory}):
@@ -82,7 +82,7 @@ class ResearchJournalTests(unittest.TestCase):
                 ))
             self.assertEqual(sorted(row["seq"] for row in results), list(range(1, 9)))
             root = Path(started["root"])
-            narrative = json.loads((root / "narrative.json").read_text())
+            narrative = json.loads((root / "narrative.json").read_text(encoding="utf-8"))
             self.assertEqual(len(narrative["events"]), 8)
             self.assertEqual([row["seq"] for row in narrative["events"]], list(range(1, 9)))
             with closing(sqlite3.connect(root / "corpus.sqlite")) as db:

@@ -6,10 +6,16 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
-from hermes_research_report.research_workspace import workspace, source, note, finish
+from hermes_research_report.research_workspace import workspace, source, note, finish, write_text
 
 
 class ResearchWorkspaceTests(unittest.TestCase):
+    def test_utf8_writes_preserve_exact_lf_bytes(self):
+        path = Path(self.run['root']) / 'utf8.txt'
+        text = 'Line one\nСтрока два\n'
+        write_text(path, text)
+        self.assertEqual(path.read_bytes(), text.encode('utf-8'))
+
     def setUp(self):
         self.directory = tempfile.TemporaryDirectory()
         self.environment = patch.dict(os.environ, {"HERMES_HOME": self.directory.name})
@@ -31,7 +37,7 @@ class ResearchWorkspaceTests(unittest.TestCase):
         state = workspace({'action': 'status', 'run_id': run_id})
         self.assertEqual(state['unique_sources'], 240)
         self.assertEqual(state['stored_characters'], len(text) * 240)
-        self.assertEqual(Path(results[-1]['path']).read_text(), text)
+        self.assertEqual(Path(results[-1]['path']).read_text(encoding="utf-8"), text)
         self.assertEqual(state['next_offset'], 25)
         self.assertEqual(len(workspace({'action': 'status', 'run_id': run_id, 'offset': 200, 'limit': 100})['sources']), 40)
 
@@ -40,7 +46,7 @@ class ResearchWorkspaceTests(unittest.TestCase):
         for number in (54, 108):
             workspace({'action': 'plan', 'run_id': run_id, 'plan': {'streams': [{'id': str(i), **({'question': 'Why?', 'method': 'Compare primary evidence'} if number == 54 else {'status': 'running'})} for i in range(number)]}})
         import json
-        plan = json.loads((Path(self.run['root']) / 'plan.json').read_text())
+        plan = json.loads((Path(self.run['root']) / 'plan.json').read_text(encoding="utf-8"))
         self.assertEqual(plan['revision'], 2)
         self.assertEqual(len(plan['streams']), 108)
         self.assertEqual(plan['streams'][0]['method'], 'Compare primary evidence')
@@ -61,7 +67,7 @@ class ResearchWorkspaceTests(unittest.TestCase):
         p = root / 'retrieved.txt'
         p.write_text('a' * 1_100_000 + 'conclusion')
         row = source({'run_id': self.run['run_id'], 'url': 'https://example.org/paper', 'text_path': str(p), 'extent': 'full_text'})
-        self.assertEqual(Path(row['path']).read_text(), p.read_text())
+        self.assertEqual(Path(row['path']).read_text(encoding="utf-8"), p.read_text(encoding="utf-8"))
         clipped = source({'run_id': self.run['run_id'], 'url': 'https://example.org/clipped', 'text': 'Some material. This content has been truncated to stay below 50000 characters', 'extent': 'full_text'})
         self.assertEqual(clipped['extent'], 'excerpt')
         self.assertTrue(clipped['truncation_detected'])
@@ -78,7 +84,7 @@ class ResearchWorkspaceTests(unittest.TestCase):
         sid = 'S-' + hashlib.sha256((url + '\n' + digest).encode()).hexdigest()[:16]
         (root / 'materials' / (sid + '.txt')).write_text('partial')
         row = source({'run_id': run_id, 'url': url, 'text': text, 'extent': 'full_text'})
-        self.assertEqual(Path(row['path']).read_text(), text)
+        self.assertEqual(Path(row['path']).read_text(encoding="utf-8"), text)
         self.assertEqual(finish({'run_id': run_id, 'report': f'[{sid}]', 'status': 'complete'})['status'], 'partial')
         def save_report(i):
             return finish({'run_id': run_id, 'report': f'Analysis revision {i} [{sid}]', 'status': 'complete'})
@@ -86,8 +92,8 @@ class ResearchWorkspaceTests(unittest.TestCase):
             list(pool.map(save_report, range(8)))
         versions = list(root.glob('report-*.md')) + [root / 'report.md']
         self.assertEqual(len(versions), 9)
-        self.assertEqual(sum('Analysis revision' in p.read_text() for p in versions), 8)
-        result = json.loads((root / 'result.json').read_text())
+        self.assertEqual(sum('Analysis revision' in p.read_text(encoding='utf-8') for p in versions), 8)
+        result = json.loads((root / 'result.json').read_text(encoding="utf-8"))
         self.assertEqual(result['report_sha256'], hashlib.sha256((root / 'report.md').read_bytes()).hexdigest())
 
 

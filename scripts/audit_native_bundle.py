@@ -340,7 +340,7 @@ def audit_native_bundle(path: Path) -> dict[str, object]:
         ):
             raise NativeAuditError("manifest_digest_invalid")
     tool_count = len(
-        re.findall(rb"(?m)^  - research_[a-z0-9_]+$", payloads["plugin.yaml"])
+        re.findall(rb"(?m)^  - research_[a-z0-9_]+\r?$", payloads["plugin.yaml"])
     )
     if tool_count != 9:
         raise NativeAuditError("native_tool_manifest_invalid")

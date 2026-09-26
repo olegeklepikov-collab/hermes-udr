@@ -48,8 +48,8 @@ def connect(root: Path):
 def write_text(path: Path, text: str):
     temporary = path.with_name(path.name + "." + uuid4().hex + ".tmp")
     try:
-        with temporary.open("x", encoding="utf-8") as f:
-            f.write(text)
+        with temporary.open("xb") as f:
+            f.write(text.encode("utf-8"))
             f.flush()
             os.fsync(f.fileno())
         temporary.replace(path)

@@ -155,7 +155,7 @@ class RunResearchTests(unittest.TestCase):
             summary = json.loads(out.getvalue())
             self.assertEqual(summary["status"], "partial")
             self.assertTrue(summary["agent_turn_incomplete"])
-            execution_text = (Path(summary["root"]) / "execution.json").read_text()
+            execution_text = (Path(summary["root"]) / "execution.json").read_text(encoding="utf-8")
             execution = json.loads(execution_text)
             self.assertEqual(execution["api_calls"], 3)
             self.assertEqual(execution["tool_call_counts"], {"delegate_task": 1, "research_source": 1})

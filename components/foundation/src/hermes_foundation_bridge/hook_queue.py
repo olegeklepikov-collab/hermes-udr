@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sqlite3
+import time
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
@@ -17,7 +18,8 @@ QUEUE_LIMIT = 1000
 BUSY_TIMEOUT_MS = 50
 MAX_ENVELOPE_BYTES = 65536
 MAX_DRAIN_ITEMS = 2
-ADMISSION_ATTEMPTS = 3
+ADMISSION_BUDGET_SECONDS = 0.2
+ADMISSION_RETRY_SECONDS = 0.01
 _HOOK_FIELDS = (
     "session_id",
     "turn_id",
@@ -36,11 +38,11 @@ class HookQueue:
         self.coordinator = RuntimeCoordinator(root, busy_timeout_ms=BUSY_TIMEOUT_MS)
 
     @contextmanager
-    def _connection(self):
+    def _connection(self, *, timeout_ms: int = BUSY_TIMEOUT_MS):
         if self.database.is_symlink() or not self.database.is_file():
             raise ValueError("hook_queue_unavailable")
         connection = sqlite3.connect(
-            self.database, timeout=BUSY_TIMEOUT_MS / 1000, isolation_level=None
+            self.database, timeout=timeout_ms / 1000, isolation_level=None
         )
         try:
             connection.row_factory = sqlite3.Row
@@ -99,9 +101,10 @@ class HookQueue:
         return self._store(*self._envelope(event_type, payload))
 
     def _store(
-        self, body: bytes, hashed: str, fragment_issue: str | None
+        self, body: bytes, hashed: str, fragment_issue: str | None,
+        *, timeout_ms: int = BUSY_TIMEOUT_MS,
     ) -> dict[str, Any]:
-        with self._connection() as connection:
+        with self._connection(timeout_ms=timeout_ms) as connection:
             connection.execute("BEGIN IMMEDIATE")
             existing = connection.execute(
                 "SELECT status FROM hook_queue WHERE envelope_hash=?", (hashed,)
@@ -126,17 +129,16 @@ class HookQueue:
     def admit(self, event_type: str, payload: dict[str, object]) -> dict[str, Any]:
         """Retry only local idempotent admission after a rolled-back busy transaction."""
         prepared = self._envelope(event_type, payload)
-        for attempt in range(ADMISSION_ATTEMPTS):
+        deadline = time.monotonic() + ADMISSION_BUDGET_SECONDS
+        while True:
             try:
-                return self._store(*prepared)
+                return self._store(*prepared, timeout_ms=0)
             except sqlite3.OperationalError as error:
                 code = getattr(error, "sqlite_errorcode", 0) & 0xFF
-                if (
-                    code not in {sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED}
-                    or attempt == ADMISSION_ATTEMPTS - 1
-                ):
+                remaining = deadline - time.monotonic()
+                if code not in {sqlite3.SQLITE_BUSY, sqlite3.SQLITE_LOCKED} or remaining <= 0:
                     raise
-        raise RuntimeError("hook_admission_unreachable")
+                time.sleep(min(ADMISSION_RETRY_SECONDS, remaining))
 
     def drain(self, *, limit: int = MAX_DRAIN_ITEMS) -> dict[str, Any]:
         if type(limit) is not int or not 1 <= limit <= MAX_DRAIN_ITEMS:

@@ -18,6 +18,37 @@ jobs:
         with:
           node-version: '24'
       - run: python -m pip install pdfplumber==0.11.9 psutil==7.2.2 PyMySQL==1.1.2 zvec==0.7.0
+      - name: Install verified native Dolt
+        shell: python
+        run: |
+          import hashlib, io, os, pathlib, platform, tarfile, urllib.request, zipfile
+          assets = {
+            'Linux': ('dolt-linux-amd64.tar.gz', '3bbcc98bd37efe1f57c28e8bf381f94bcaf083284cd090b4abd5b735d28e2d56'),
+            'Darwin': ('dolt-darwin-arm64.tar.gz', '22e56eea229ae9a661f671fb335f472ce6c72bc57244d9dbdde97d8c042037c4'),
+            'Windows': ('dolt-windows-amd64.zip', '829ce18295c3d5730f2219bf2451c96da5d6d78545fbbf3272739d61b6b8b67e'),
+          }
+          name, expected = assets[platform.system()]
+          data = urllib.request.urlopen('https://github.com/dolthub/dolt/releases/download/v2.2.1/' + name, timeout=120).read()
+          if hashlib.sha256(data).hexdigest() != expected:
+            raise SystemExit('Dolt archive checksum mismatch')
+          directory = pathlib.Path(os.environ['RUNNER_TEMP']) / 'native-bin'
+          directory.mkdir(exist_ok=True)
+          executable = 'dolt.exe' if os.name == 'nt' else 'dolt'
+          if name.endswith('.zip'):
+            with zipfile.ZipFile(io.BytesIO(data)) as archive:
+              matches = [n for n in archive.namelist() if pathlib.PurePosixPath(n).name == executable]
+              if len(matches) != 1: raise SystemExit('Unexpected Dolt archive')
+              body = archive.read(matches[0])
+          else:
+            with tarfile.open(fileobj=io.BytesIO(data), mode='r:gz') as archive:
+              matches = [m for m in archive.getmembers() if m.isfile() and pathlib.PurePosixPath(m.name).name == executable]
+              if len(matches) != 1: raise SystemExit('Unexpected Dolt archive')
+              body = archive.extractfile(matches[0]).read()
+          target = directory / executable
+          target.write_bytes(body)
+          target.chmod(0o755)
+          with open(os.environ['GITHUB_PATH'], 'a', encoding='utf-8') as handle:
+            handle.write(str(directory) + '\n')
       - name: Research core
         shell: python
         run: |

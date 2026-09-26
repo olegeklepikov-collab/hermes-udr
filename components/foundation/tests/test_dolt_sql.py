@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import secrets
 import shutil
 import socket
@@ -18,7 +19,7 @@ from hermes_foundation_bridge.canonical import sha256_json
 from hermes_foundation_bridge.dolt_sql import AUTHORITY_MANIFEST, DoltSQLAdapter
 from hermes_foundation_bridge.dolt_state import DoltStateAdapter
 from hermes_foundation_bridge.errors import BridgeError
-from scripts.manage_dolt_sql import manage
+from hermes_foundation_bridge.native_runtime import assert_private_file
 from scripts.provision_dolt_sql import provision
 
 
@@ -106,15 +107,8 @@ class DoltSQLAdapterTests(unittest.TestCase):
         self.assertEqual(applied["status"], "provisioned_offline")
         self.assertFalse(applied["server_started"])
         self.assertIsInstance(services(self.root)[2], DoltSQLAdapter)
-        self.assertEqual(
-            (self.root / "dolt" / ".secrets" / "writer.password").stat().st_mode
-            & 0o777,
-            0o600,
-        )
-        self.assertEqual(
-            (self.admin_secrets / "dolt-admin.password").stat().st_mode & 0o777,
-            0o600,
-        )
+        assert_private_file(self.root / "dolt" / ".secrets" / "writer.password")
+        assert_private_file(self.admin_secrets / "dolt-admin.password")
         self.start_server()
         adapter = DoltSQLAdapter(self.root)
         self.assertEqual(adapter.health()["status"], "healthy")
@@ -249,9 +243,11 @@ class DoltSQLAdapterTests(unittest.TestCase):
             probe.rollback()
         finally:
             probe.close()
-        with self.assertRaisesRegex(ValueError, "Права файла SQL-службы"):
-            adapter._configuration()
-        adapter.branch_control_path.chmod(0o600)
+        if os.name != "nt":
+            # Dolt rewrites its branch file with broad POSIX mode during this test.
+            with self.assertRaisesRegex(ValueError, "Права файла SQL-службы"):
+                adapter._configuration()
+            adapter.branch_control_path.chmod(0o600)
         self.assertEqual(
             adapter.get(
                 {
@@ -265,6 +261,8 @@ class DoltSQLAdapterTests(unittest.TestCase):
         )
 
     def test_managed_staging_lifecycle(self) -> None:
+        from scripts.manage_dolt_sql import manage
+
         provision(self.root, self.admin_secrets, apply=True)
         try:
             started = manage(self.root, "start")
